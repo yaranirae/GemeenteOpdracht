@@ -21,4 +21,15 @@ class Complaint extends Model
         'photo_path',
         'status'
     ];
+
+    protected $casts = [
+        'latitude' => 'float',
+        'longitude' => 'float',
+    ];
+
+    // علاقة مع المستخدم إذا أردت إضافة نظام مستخدمين
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
