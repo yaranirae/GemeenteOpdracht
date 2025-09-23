@@ -13,15 +13,19 @@ class AdminController extends Controller
         //$this->middleware('admin_auth');
     }
 
-    public function dashboard()
-    {
-        $recentComplaints = Complaint::latest()->take(5)->get();
-        $totalComplaints = Complaint::count();
-        $newComplaints = Complaint::where('status', 'new')->count();
-        $resolvedComplaints = Complaint::where('status', 'resolved')->count();
-        return view('admin.dashboard', compact('recentComplaints', 'totalComplaints', 'newComplaints', 'resolvedComplaints'));
-    }
-
+    // public function dashboard()
+    // {
+    //     $recentComplaints = Complaint::latest()->take(5)->get();
+    //     $totalComplaints = Complaint::count();
+    //     $newComplaints = Complaint::where('status', 'new')->count();
+    //     $resolvedComplaints = Complaint::where('status', 'resolved')->count();
+    //     return view('admin.dashboard', compact('recentComplaints', 'totalComplaints', 'newComplaints', 'resolvedComplaints'));
+    // }
+public function dashboard()
+{
+    $totalComplaints = Complaint::count();
+    return view('admin.simple-dashboard', compact('totalComplaints'));
+}
     public function complaints(Request $request)
     {
         $query = Complaint::query();
