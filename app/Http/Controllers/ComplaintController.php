@@ -23,7 +23,7 @@ class ComplaintController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,',
+            'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,overig',
             'address' => 'required|string|max:255',
             'description' => 'required|string',
             'latitude' => 'nullable|numeric',
@@ -31,7 +31,7 @@ class ComplaintController extends Controller
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
-            'photo' => 'nullable|image|max:2048'
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         // حفظ الصورة إذا تم رفعها
@@ -105,5 +105,20 @@ class ComplaintController extends Controller
             return redirect()->back()->with('error', 'Bericht kon niet worden verzonden: ' . $e->getMessage());
         }
     }
-}
 
+    /**
+     * حذف صورة الشكوى
+     */
+    public function deletePhoto($id)
+    {
+        $complaint = Complaint::findOrFail($id);
+        
+        if ($complaint->photo_path) {
+            Storage::disk('public')->delete($complaint->photo_path);
+            $complaint->photo_path = null;
+            $complaint->save();
+        }
+
+        return redirect()->back()->with('success', 'Foto succesvol verwijderd.');
+    }
+}
