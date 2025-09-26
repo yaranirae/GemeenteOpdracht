@@ -11,7 +11,7 @@ Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/', function () {
-   return redirect('/map');
+    return redirect('/map');
 });
 
 
@@ -25,6 +25,8 @@ Route::get('/klachten', [ComplaintController::class, 'index'])->name('complaints
 Route::get('/klachten/aanmaken', [ComplaintController::class, 'create'])->name('complaints.create');
 Route::post('/klachten', [ComplaintController::class, 'store'])->name('complaints.store');
 Route::get('/klachten/bedankt', [ComplaintController::class, 'thankyou'])->name('complaints.thankyou');
+Route::post('/complaints/{id}/status', [ComplaintController::class, 'updateStatus'])->name('complaints.updateStatus');
+Route::post('/complaints/{id}/message', [ComplaintController::class, 'sendCustomMessage'])->name('complaints.sendMessage');
 
 // مسارات الأدمن (محمي بالـ middleware)
 // Admin routes
