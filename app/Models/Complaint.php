@@ -27,6 +27,15 @@ class Complaint extends Model
         'longitude' => 'float',
     ];
 
+    // دالة للحصول على رابط الصورة
+    public function getPhotoUrlAttribute()
+    {
+        if ($this->photo_path) {
+            return asset('storage/' . $this->photo_path);
+        }
+        return null;
+    }
+
     // علاقة مع المستخدم إذا أردت إضافة نظام مستخدمين
     public function user()
     {

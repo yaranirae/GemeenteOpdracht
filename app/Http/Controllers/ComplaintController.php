@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Complaint;
+use App\Mail\ComplaintStatusMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class ComplaintController extends Controller
 {
@@ -20,7 +23,7 @@ class ComplaintController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,',
+            'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,overig',
             'address' => 'required|string|max:255',
             'description' => 'required|string',
             'latitude' => 'nullable|numeric',
@@ -28,7 +31,7 @@ class ComplaintController extends Controller
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
-            'photo' => 'nullable|image|max:2048'
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         // حفظ الصورة إذا تم رفعها
@@ -46,5 +49,76 @@ class ComplaintController extends Controller
     public function thankyou()
     {
         return view('complaints.thankyou');
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:new,in_progress,resolved',
+            'message' => 'nullable|string|max:500'
+        ]);
+
+        $complaint = Complaint::findOrFail($id);
+        $oldStatus = $complaint->status;
+        $complaint->status = $request->status;
+        $complaint->save();
+
+        // إرسال البريد الإلكتروني إذا كان هناك بريد للمشتكي
+        if ($complaint->email) {
+            try {
+                Mail::to($complaint->email)
+                    ->send(new ComplaintStatusMail($complaint, $request->message));
+                
+                $emailStatus = ' en notificatie is verzonden';
+            } catch (\Exception $e) {
+                $emailStatus = ' maar notificatie kon niet worden verzonden';
+            }
+        } else {
+            $emailStatus = '';
+        }
+
+        return redirect()->back()->with('success', 'Status bijgewerkt' . $emailStatus);
+    }
+
+    /**
+     * إرسال رسالة مخصصة للمشتكي
+     */
+    public function sendCustomMessage(Request $request, $id)
+    {
+        $request->validate([
+            'message' => 'required|string|max:1000',
+            'subject' => 'required|string|max:200'
+        ]);
+
+        $complaint = Complaint::findOrFail($id);
+
+        if (!$complaint->email) {
+            return redirect()->back()->with('error', 'Geen e-mailadres beschikbaar voor deze klacht.');
+        }
+
+        try {
+            Mail::to($complaint->email)
+                ->send(new ComplaintStatusMail($complaint, $request->message));
+            
+            return redirect()->back()->with('success', 'Bericht succesvol verzonden naar klager.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Bericht kon niet worden verzonden: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * حذف صورة الشكوى
+     */
+    public function deletePhoto($id)
+    {
+        $complaint = Complaint::findOrFail($id);
+        
+        if ($complaint->photo_path) {
+            Storage::disk('public')->delete($complaint->photo_path);
+            $complaint->photo_path = null;
+            $complaint->save();
+        }
+
+        return redirect()->back()->with('success', 'Foto succesvol verwijderd.');
     }
 }
