@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Complaint;
+use App\Models\Melder; // أضف هذا
 use App\Mail\ComplaintStatusMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -34,14 +35,31 @@ class ComplaintController extends Controller
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
+        // البحث عن مشتكي موجود أو إنشاء جديد
+        $melder = null;
+        if (!empty($validated['email']) || !empty($validated['name'])) {
+            $melder = Melder::firstOrCreate(
+                ['email' => $validated['email'] ?? null],
+                [
+                    'naam' => $validated['name'] ?? 'Anoniem',
+                    'mobiel' => $validated['phone'] ?? null
+                ]
+            );
+        }
+
         // حفظ الصورة إذا تم رفعها
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('complaints', 'public');
             $validated['photo_path'] = $path;
         }
 
-        // حفظ الشكوى في قاعدة البيانات
-        Complaint::create($validated);
+        // حفظ الشكوى مع ربطها بالمشتكي
+        $complaintData = $validated;
+        if ($melder) {
+            $complaintData['melder_id'] = $melder->id;
+        }
+
+        Complaint::create($complaintData);
 
         return redirect()->route('complaints.thankyou');
     }
@@ -58,15 +76,15 @@ class ComplaintController extends Controller
             'message' => 'nullable|string|max:500'
         ]);
 
-        $complaint = Complaint::findOrFail($id);
+        $complaint = Complaint::with('melder')->findOrFail($id); // أضف with('melder')
         $oldStatus = $complaint->status;
         $complaint->status = $request->status;
         $complaint->save();
 
         // إرسال البريد الإلكتروني إذا كان هناك بريد للمشتكي
-        if ($complaint->email) {
+        if ($complaint->melder && $complaint->melder->email) { // تحديث هذا الشرط
             try {
-                Mail::to($complaint->email)
+                Mail::to($complaint->melder->email) // تحديث هذا السطر
                     ->send(new ComplaintStatusMail($complaint, $request->message));
                 
                 $emailStatus = ' en notificatie is verzonden';
@@ -90,14 +108,14 @@ class ComplaintController extends Controller
             'subject' => 'required|string|max:200'
         ]);
 
-        $complaint = Complaint::findOrFail($id);
+        $complaint = Complaint::with('melder')->findOrFail($id); // أضف with('melder')
 
-        if (!$complaint->email) {
+        if (!$complaint->melder || !$complaint->melder->email) { // تحديث هذا الشرط
             return redirect()->back()->with('error', 'Geen e-mailadres beschikbaar voor deze klacht.');
         }
 
         try {
-            Mail::to($complaint->email)
+            Mail::to($complaint->melder->email) // تحديث هذا السطر
                 ->send(new ComplaintStatusMail($complaint, $request->message));
             
             return redirect()->back()->with('success', 'Bericht succesvol verzonden naar klager.');
@@ -120,5 +138,23 @@ class ComplaintController extends Controller
         }
 
         return redirect()->back()->with('success', 'Foto succesvol verwijderd.');
+    }
+
+    /**
+     * عرض جميع الشكاوى للمسؤول (إضافة جديدة)
+     */
+    public function adminIndex()
+    {
+        $complaints = Complaint::with('melder')->latest()->get(); // أضف with('melder')
+        return view('complaints.admin.index', compact('complaints'));
+    }
+
+    /**
+     * عرض تفاصيل شكوى معينة (إضافة جديدة)
+     */
+    public function show($id)
+    {
+        $complaint = Complaint::with('melder')->findOrFail($id); // أضف with('melder')
+        return view('complaints.admin.show', compact('complaint'));
     }
 }
