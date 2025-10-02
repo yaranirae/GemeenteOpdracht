@@ -19,7 +19,8 @@ class Complaint extends Model
         'email',
         'phone',
         'photo_path',
-        'status'
+        'status',
+        'melder_id' 
     ];
 
     protected $casts = [
@@ -27,7 +28,6 @@ class Complaint extends Model
         'longitude' => 'float',
     ];
 
-    // دالة للحصول على رابط الصورة
     public function getPhotoUrlAttribute()
     {
         if ($this->photo_path) {
@@ -36,9 +36,9 @@ class Complaint extends Model
         return null;
     }
 
-    // علاقة مع المستخدم إذا أردت إضافة نظام مستخدمين
-    public function user()
+    // العلاقة مع المشتكي
+    public function melder()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Melder::class);
     }
 }
