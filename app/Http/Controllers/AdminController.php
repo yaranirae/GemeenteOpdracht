@@ -172,6 +172,9 @@ public function complaints(Request $request)
             $query->latest();
         }])->findOrFail($id);
 
-        return view('admin.melder-details', compact('melder'));
+        // return view('admin.melder-details', compact('melder'));
+
+    return view('admin.complaints', compact('complaints', 'categories', 'allMelders'));
+        
     }
 }
