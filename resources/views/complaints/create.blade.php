@@ -7,12 +7,33 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .header { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 2rem 0; }
-        .card { border: none; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.08); }
-        .btn-primary { background-color: #1e3c72; border: none; }
-        .btn-primary:hover { background-color: #2a5298; }
-        .address-display { background-color: #e9f7ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        body { 
+            background-color: #f8f9fa; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        .header { 
+            background: linear-gradient(135deg, #1e3c72, #2a5298); 
+            color: white; 
+            padding: 2rem 0; 
+        }
+        .card { 
+            border: none; 
+            border-radius: 12px; 
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08); 
+        }
+        .btn-primary { 
+            background-color: #1e3c72; 
+            border: none; 
+        }
+        .btn-primary:hover { 
+            background-color: #2a5298; 
+        }
+        .address-display { 
+            background-color: #e9f7ff; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+        }
         .photo-preview-container { 
             display: none; 
             margin-top: 15px; 
@@ -46,6 +67,10 @@
             color: #6c757d;
             margin-bottom: 10px;
         }
+        .required-field::after {
+            content: " *";
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -59,7 +84,7 @@
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card p-4">
-                    <h3 class="mb-4">Klacht over: {{ request('category') }}</h3>
+                    <h3 class="mb-4">Klacht over: {{ request('category') ?? 'Algemeen probleem' }}</h3>
                     
                     <!-- عرض العنوان الذي تم اختياره -->
                     <div class="address-display">
@@ -67,7 +92,7 @@
                         <p id="selected-address">Adres wordt geladen...</p>
                     </div>
                     
-                    <form action="{{ route('complaints.store') }}" method="POST" enctype="multipart/form-data" id="complaint-form">
+                    <form action="{{ route('complaints.thankyou') }}" method="POST" enctype="multipart/form-data" id="complaint-form">
                         @csrf
                         <input type="hidden" name="category" value="{{ request('category') }}">
                         
@@ -75,8 +100,10 @@
                         <input type="hidden" name="address" id="address-field">
                         
                         <div class="mb-3">
-                            <label for="description" class="form-label">Beschrijving van het probleem *</label>
-                            <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                            <label for="description" class="form-label required-field">Beschrijving van het probleem</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required 
+                                      placeholder="Beschrijf het probleem zo gedetailleerd mogelijk..."></textarea>
+                            <div class="form-text">Vermeld zoveel mogelijk details over het probleem.</div>
                         </div>
                         
                         <!-- قسم تحميل الصور -->
@@ -111,12 +138,12 @@
                         
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="latitude" class="form-label">Latitude (optioneel)</label>
-                                <input type="number" step="any" class="form-control" id="latitude" name="latitude">
+                                <label for="latitude" class="form-label">Breedtegraad (optioneel)</label>
+                                <input type="number" step="any" class="form-control" id="latitude" name="latitude" placeholder="52.3676">
                             </div>
                             <div class="col-md-6">
-                                <label for="longitude" class="form-label">Longitude (optioneel)</label>
-                                <input type="number" step="any" class="form-control" id="longitude" name="longitude">
+                                <label for="longitude" class="form-label">Lengtegraad (optioneel)</label>
+                                <input type="number" step="any" class="form-control" id="longitude" name="longitude" placeholder="4.9041">
                             </div>
                         </div>
                         
@@ -125,27 +152,30 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="name" class="form-label">Naam</label>
-                                <input type="text" class="form-control" id="name" name="name">
+                                <input type="text" class="form-control" id="name" name="name" placeholder="Uw naam">
                             </div>
                             <div class="col-md-6">
                                 <label for="email" class="form-label">E-mail</label>
-                                <input type="email" class="form-control" id="email" name="email">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="uw@email.nl">
                             </div>
                         </div>
                         
                         <div class="mb-4">
                             <label for="phone" class="form-label">Telefoon</label>
-                            <input type="tel" class="form-control" id="phone" name="phone">
+                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="06 12345678">
                         </div>
                         
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" onclick="confirmSubmission(event)">Klacht Indienen</button>
+                            <button type="submit" class="btn btn-primary btn-lg">Klacht Indienen</button>
                         </div>
                     </form>
                 </div>
                 
                 <div class="text-center mt-3">
-                    <a href="{{ route('complaints.index') }}" class="btn btn-secondary">Terug naar hoofdpagina</a>
+                    <!-- تحسين المسار الراجع -->
+                    <a href="{{ url('/') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Terug naar hoofdpagina
+                    </a>
                 </div>
             </div>
         </div>
@@ -158,7 +188,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         // عند تحميل الصفحة، احصل على العنوان من localStorage
         document.addEventListener('DOMContentLoaded', function() {
@@ -178,10 +207,18 @@
                 }
             } else {
                 document.getElementById('selected-address').textContent = 'Geen adres geselecteerd';
+                document.getElementById('address-field').value = 'Onbekend adres';
             }
             
             // تهيئة أحداث تحميل الملفات
             initFileUpload();
+            
+            // إضافة تحقق من الصحة عند الإرسال
+            document.getElementById('complaint-form').addEventListener('submit', function(e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                }
+            });
         });
 
         // تهيئة وظائف تحميل الملفات
@@ -261,33 +298,29 @@
             document.getElementById('file-info').innerHTML = '';
         }
 
-        function confirmSubmission(event) {
-            event.preventDefault(); // منع الإرسال المباشر للنموذج
-            
-            // التأكد من وجود عنوان
+        // تحقق من صحة النموذج
+        function validateForm() {
             const address = document.getElementById('address-field').value;
-            if (!address) {
+            const description = document.getElementById('description').value.trim();
+            
+            if (!address || address === 'Onbekend adres') {
                 alert('Selecteer eerst een adres op de vorige pagina');
-                return;
+                return false;
             }
             
-            // التأكد من وجود وصف
-            const description = document.getElementById('description').value;
-            if (!description.trim()) {
+            if (!description) {
                 alert('Vul een beschrijving van het probleem in');
                 document.getElementById('description').focus();
-                return;
+                return false;
             }
             
-            if (confirm('Weet u zeker dat u uw klacht wilt indienen?')) {
-                // إرسال النموذج بعد التأكيد
-                document.getElementById('complaint-form').submit();
-                
-                // مسح البيانات المخزنة بعد الإرسال (اختياري)
-                localStorage.removeItem('locationDetails');
-                localStorage.removeItem('locationLat');
-                localStorage.removeItem('locationLng');
+            if (description.length < 10) {
+                alert('Geef een gedetailleerdere beschrijving van het probleem (minimaal 10 tekens)');
+                document.getElementById('description').focus();
+                return false;
             }
+            
+            return confirm('Weet u zeker dat u uw klacht wilt indienen?');
         }
     </script>
 </body>

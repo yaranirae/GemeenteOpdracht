@@ -17,9 +17,10 @@ Route::get('/', function () {
     return redirect('/map');
 });
 
-// خريطة الموقع
+// خريطة الموقع والجيو كودينغ
 Route::get('/map', [MapController::class, 'showMap'])->name('map.show');
 Route::post('/geocode', [MapController::class, 'geocodeAddress'])->name('geocode');
+Route::post('/reverse-geocode', [MapController::class, 'reverseGeocode'])->name('reverse.geocode');
 
 // مسارات الشكاوى العامة
 Route::prefix('klachten')->group(function () {
