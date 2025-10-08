@@ -7,16 +7,16 @@
     <title>Klachten - Gemeente</title>
 </head>
 <body class="bg-stone-50 min-h-screen flex flex-col">
-<header class="flex justify-between items-center py-4 px-6 border-b border-stone-200">
+<header class="bg-green-900 flex justify-between items-center py-4 px-6 border-b border-stone-200">
     <div class="flex items-center space-x-2">
         <div class="bg-green-600 text-white font-bold text-lg rounded-full h-10 w-10 flex items-center justify-center">
             GR
         </div>
-        <h1 class="text-xl font-semibold text-stone-700">Gemeente Rotterdam</h1>
+        <h1 class="text-xl font-semibold text-white">Gemeente Rotterdam</h1>
     </div>
     <nav class="space-x-4 hidden sm:block">
-        <a href="#" class="text-stone-600 hover:text-green-600">Over</a>
-        <a href="#" class="text-stone-600 hover:text-green-600">Contact</a>
+        <a href="#" class="text-white hover:text-green-600">Over</a>
+        <a href="#" class="text-white hover:text-green-600">Contact</a>
     </nav>
 </header>
 
@@ -46,7 +46,7 @@
 
             <div class="bg-stone-100 rounded-lg p-4 border border-stone-200">
                 <strong class="block text-green-800 mb-1">Wat je nodig hebt</strong>
-                <p class="text-stone-700">Adres, datum/tijd en contactgegevens.</p>
+                <p class="text-stone-700">Adres, beschrijving, foto (optioneel) en contactgegevens.</p>
                 <p class="mt-2 text-sm text-stone-600">U kunt ook kiezen voor anoniem indienen.</p>
             </div>
         </div>
