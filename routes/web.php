@@ -14,10 +14,11 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
 // الصفحة الرئيسية
 Route::get('/', function () {
-    return redirect('/map');
+    return view('welcome');
 });
 
-// خريطة الموقع والجيو كودينغ
+
+// خريطة الموقع
 Route::get('/map', [MapController::class, 'showMap'])->name('map.show');
 Route::post('/geocode', [MapController::class, 'geocodeAddress'])->name('geocode');
 Route::post('/reverse-geocode', [MapController::class, 'reverseGeocode'])->name('reverse.geocode');
@@ -41,7 +42,7 @@ Route::prefix('complaints')->group(function () {
 Route::prefix('admin')->middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    
+
     // إدارة الشكاوى
     Route::prefix('complaints')->group(function () {
         Route::get('/', [AdminController::class, 'complaints'])->name('admin.complaints');
@@ -49,7 +50,7 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::post('/{id}/status', [AdminController::class, 'updateComplaintStatus'])->name('admin.complaints.status');
         Route::delete('/{id}', [AdminController::class, 'deleteComplaint'])->name('admin.complaints.delete');
     });
-    
+
     // إدارة المشتكين
     Route::prefix('melders')->group(function () {
         Route::get('/', [AdminController::class, 'melders'])->name('admin.melders');
