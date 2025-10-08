@@ -45,6 +45,7 @@ class ComplaintController extends Controller
         // الحصول على بيانات الموقع من الجلسة إذا كانت موجودة
         $locationData = session('location_data');
 
+
         if ($locationData) {
             $address = $locationData['address'];
             $lat = $locationData['latitude'];
@@ -62,64 +63,7 @@ class ComplaintController extends Controller
     /**
      * حفظ الشكوى الجديدة
      */
-    public function store(Request $request)
-    {
-
-        DB::beginTransaction();
-
-        try {
-            $validated = $request->validate([
-                'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,overig',
-                'address' => 'required|string|max:255',
-                'description' => 'required|string|min:10|max:1000',
-                'latitude' => 'required|numeric|between:-90,90',
-                'longitude' => 'required|numeric|between:-180,180',
-                'name' => 'nullable|string|max:255',
-                'email' => 'nullable|email|max:255',
-                'phone' => 'nullable|string|max:20',
-                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
-            ]);
-
-            // البحث عن مشتكي موجود أو إنشاء جديد
-            $melderId = $this->handleMelderData($validated);
-
-            // حفظ الصورة إذا تم رفعها
-            $photoPath = $this->handlePhotoUpload($request);
-
-            // إنشاء الشكوى
-            $complaint = Complaint::create([
-                'category' => $validated['category'],
-                'address' => $validated['address'],
-                'description' => $validated['description'],
-                'latitude' => $validated['latitude'],
-                'longitude' => $validated['longitude'],
-                'melder_id' => $melderId,
-                'photo_path' => $photoPath,
-                'status' => 'new',
-                'complaint_number' => $this->generateComplaintNumber()
-            ]);
-
-            DB::commit();
-
-            // مسح بيانات الجلسة بعد حفظ الشكوى بنجاح
-            session()->forget('location_data');
-            // حفظ بيانات الشكوى في الجلسة لعرضها في صفحة الشكر
-            session()->flash('complaint_number', $complaint->complaint_number);
-            session()->flash('complaint_category', $complaint->category);
-
-            return redirect()->route('complaints.thankyou')
-                ->with('success', 'Successfully submitted your complaint.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Complaint storage failed: ' . $e->getMessage());
-
-            return redirect()->back()
-                ->with('error', 'Failed to submit your complaint.')
-                ->withInput();
-        }
-    }
-
+    
     /**
      * معالجة بيانات المشتكي
      */
@@ -169,18 +113,66 @@ class ComplaintController extends Controller
     /**
      * صفحة الشكر بعد تقديم الشكوى
      */
-    public function thankyou()
-    {
-        $complaint_number = session('complaint_number');
-        $complaint_category = session('complaint_category');
+    public function store(Request $request)
+{
+    DB::beginTransaction();
 
-        if (!$complaint_number) {
-            return redirect()->route('complaints.create');
-        }
+    try {
+        $validated = $request->validate([
+            'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,overig',
+            'address' => 'required|string|max:255',
+            'description' => 'required|string|min:10|max:1000',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
+        ]);
 
-        return view('complaints.thankyou', compact('complaint_number', 'complaint_category'));
+        $melderId = $this->handleMelderData($validated);
+        $photoPath = $this->handlePhotoUpload($request);
+
+        $complaint = Complaint::create([
+            'category' => $validated['category'],
+            'address' => $validated['address'],
+            'description' => $validated['description'],
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'melder_id' => $melderId,
+            'photo_path' => $photoPath,
+            'status' => 'new',
+            'complaint_number' => $this->generateComplaintNumber()
+        ]);
+
+        DB::commit();
+
+        session()->forget('location_data');
+        
+        return redirect()->route('complaints.thankyou')
+            ->with('complaint_number', $complaint->complaint_number)
+            ->with('complaint_category', $complaint->category) 
+            ->with('success', 'Successfully submitted your complaint.');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Complaint storage failed: ' . $e->getMessage());
+
+        return redirect()->back()
+            ->with('error', 'Failed to submit your complaint: ' . $e->getMessage())
+            ->withInput();
     }
+}
 
-    // ... باقي الدوال تبقى كما هي بدون تغيير
-    // (updateStatus, sendCustomMessage, deletePhoto, adminIndex, show, showMap, getComplaintsForMap, destroy, getStatistics, edit, update)
+public function thankyou()
+{
+    $complaint_number = session('complaint_number');
+    $complaint_category = session('complaint_category');
+    // dd($complaint_number);
+    // if (!$complaint_number) {
+    //     return redirect()->route('complaints.create');
+    // }
+
+    return view('complaints.thankyou', compact('complaint_number', 'complaint_category'));
+}
 }

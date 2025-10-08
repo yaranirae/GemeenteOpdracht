@@ -92,7 +92,7 @@
                         <p id="selected-address">Adres wordt geladen...</p>
                     </div>
                     
-                    <form action="{{ route('complaints.thankyou') }}" method="POST" enctype="multipart/form-data" id="complaint-form">
+                    <form action="{{ route('complaints.store') }}" method="POST" enctype="multipart/form-data" id="complaint-form">
                         @csrf
                         <input type="hidden" name="category" value="{{ request('category') }}">
                         
