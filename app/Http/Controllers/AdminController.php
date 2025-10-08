@@ -83,7 +83,7 @@ public function complaints(Request $request)
 
     public function showComplaint($id)
     {
-        $complaint = Complaint::with('melder')->findOrFail($id); // أضف with('melder')
+        $complaint = Complaint::with('melder')->findOrFail($id); 
         return view('admin.complaint-details', compact('complaint'));
     }
 
@@ -94,12 +94,12 @@ public function complaints(Request $request)
             'message' => 'nullable|string|max:500'
         ]);
 
-        $complaint = Complaint::with('melder')->findOrFail($id); // أضف with('melder')
+        $complaint = Complaint::with('melder')->findOrFail($id); 
         $oldStatus = $complaint->status;
         $complaint->status = $request->status;
         $complaint->save();
 
-        // Stuur notificatie als aangevinkt - تحديث للعمل مع melder
+        // Stuur notificatie als aangevinkt - update voor melder
         if ($request->has('send_notification') && $complaint->melder && $complaint->melder->email) {
             $melder = $complaint->melder;
             $message = $request->message ?: $this->getDefaultMessage($request->status);
@@ -172,6 +172,9 @@ public function complaints(Request $request)
             $query->latest();
         }])->findOrFail($id);
 
-        return view('admin.melder-details', compact('melder'));
+        // return view('admin.melder-details', compact('melder'));
+
+    return view('admin.complaints', compact('complaints', 'categories', 'allMelders'));
+        
     }
 }

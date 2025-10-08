@@ -3,158 +3,176 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Complaint;
-use App\Models\Melder; 
-use App\Mail\ComplaintStatusMail;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use App\Models\Complaint;
+use App\Models\Melder;
+use App\Mail\ComplaintStatusMail;
 
 class ComplaintController extends Controller
 {
-    public function index()
+    /**
+     * عرض صفحة الشكاوى الرئيسية
+     */
+    public function index(Request $request)
     {
-        return view('complaints.index');
+        // إذا كان هناك بيانات موقع مرسلة من الخريطة، احفظها في الجلسة
+        if ($request->has('address') && $request->has('lat') && $request->has('lng')) {
+            session([
+                'location_data' => [
+                    'address' => $request->get('address'),
+                    'latitude' => $request->get('lat'),
+                    'longitude' => $request->get('lng')
+                ]
+            ]);
+            // return redirect()->route('complaints.index');
+            $complaints = Complaint::with('melder')->latest()->take(10)->get();
+            return view('complaints.index', compact('complaints'));
+        }
+
+        $complaints = Complaint::with('melder')->latest()->take(10)->get();
+        return view('complaints.index', compact('complaints'));
     }
+
+    /**
+     * عرض نموذج إنشاء شكوى جديدة
+     */
 
     public function create()
     {
-        return view('complaints.create');
+        // الحصول على بيانات الموقع من الجلسة إذا كانت موجودة
+        $locationData = session('location_data');
+
+
+        if ($locationData) {
+            $address = $locationData['address'];
+            $lat = $locationData['latitude'];
+            $lng = $locationData['longitude'];
+
+            // مسح بيانات الجلسة بعد استخدامها
+            // session()->forget('location_data');
+        } else {
+            $address = $lat = $lng = null;
+        }
+
+        return view('complaints.create', compact('address', 'lat', 'lng'));
     }
 
-    public function store(Request $request)
+    /**
+     * حفظ الشكوى الجديدة
+     */
+    
+    /**
+     * معالجة بيانات المشتكي
+     */
+    private function handleMelderData(array $validated)
     {
-        $validated = $request->validate([
-            'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,overig',
-            'address' => 'required|string|max:255',
-            'description' => 'required|string',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'name' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
-
-        // البحث عن مشتكي موجود أو إنشاء جديد
-        $melder = null;
-        if (!empty($validated['email']) || !empty($validated['name'])) {
+        if (!empty($validated['email'])) {
             $melder = Melder::firstOrCreate(
-                ['email' => $validated['email'] ?? null],
+                ['email' => $validated['email']],
                 [
                     'naam' => $validated['name'] ?? 'Anoniem',
                     'mobiel' => $validated['phone'] ?? null
                 ]
             );
+            return $melder->id;
+        } elseif (!empty($validated['name'])) {
+            $melder = Melder::create([
+                'naam' => $validated['name'],
+                'mobiel' => $validated['phone'] ?? null,
+                'email' => null
+            ]);
+            return $melder->id;
         }
 
-        // حفظ الصورة إذا تم رفعها
+        return null;
+    }
+
+    /**
+     * معالجة رفع الصورة
+     */
+    private function handlePhotoUpload(Request $request)
+    {
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('complaints', 'public');
-            $validated['photo_path'] = $path;
+            return $request->file('photo')->store('complaints', 'public');
         }
 
-        // حفظ الشكوى مع ربطها بالمشتكي
-        $complaintData = $validated;
-        if ($melder) {
-            $complaintData['melder_id'] = $melder->id;
-        }
-
-        Complaint::create($complaintData);
-
-        return redirect()->route('complaints.thankyou');
-    }
-
-    public function thankyou()
-    {
-        return view('complaints.thankyou');
-    }
-
-    public function updateStatus(Request $request, $id)
-    {
-        $request->validate([
-            'status' => 'required|in:new,in_progress,resolved',
-            'message' => 'nullable|string|max:500'
-        ]);
-
-        $complaint = Complaint::with('melder')->findOrFail($id); // أضف with('melder')
-        $oldStatus = $complaint->status;
-        $complaint->status = $request->status;
-        $complaint->save();
-
-        // إرسال البريد الإلكتروني إذا كان هناك بريد للمشتكي
-        if ($complaint->melder && $complaint->melder->email) { // تحديث هذا الشرط
-            try {
-                Mail::to($complaint->melder->email) // تحديث هذا السطر
-                    ->send(new ComplaintStatusMail($complaint, $request->message));
-                
-                $emailStatus = ' en notificatie is verzonden';
-            } catch (\Exception $e) {
-                $emailStatus = ' maar notificatie kon niet worden verzonden';
-            }
-        } else {
-            $emailStatus = '';
-        }
-
-        return redirect()->back()->with('success', 'Status bijgewerkt' . $emailStatus);
+        return null;
     }
 
     /**
-     * إرسال رسالة مخصصة للمشتكي
+     * إنشاء رقم شكوى فريد
      */
-    public function sendCustomMessage(Request $request, $id)
+    private function generateComplaintNumber()
     {
-        $request->validate([
-            'message' => 'required|string|max:1000',
-            'subject' => 'required|string|max:200'
-        ]);
-
-        $complaint = Complaint::with('melder')->findOrFail($id); // أضف with('melder')
-
-        if (!$complaint->melder || !$complaint->melder->email) { // تحديث هذا الشرط
-            return redirect()->back()->with('error', 'Geen e-mailadres beschikbaar voor deze klacht.');
-        }
-
-        try {
-            Mail::to($complaint->melder->email) // تحديث هذا السطر
-                ->send(new ComplaintStatusMail($complaint, $request->message));
-            
-            return redirect()->back()->with('success', 'Bericht succesvol verzonden naar klager.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Bericht kon niet worden verzonden: ' . $e->getMessage());
-        }
+        return 'COMP-' . date('Ymd') . '-' . strtoupper(Str::random(6));
     }
 
     /**
-     * حذف صورة الشكوى
+     * صفحة الشكر بعد تقديم الشكوى
      */
-    public function deletePhoto($id)
-    {
-        $complaint = Complaint::findOrFail($id);
+    public function store(Request $request)
+{
+    DB::beginTransaction();
+
+    try {
+        $validated = $request->validate([
+            'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,overig',
+            'address' => 'required|string|max:255',
+            'description' => 'required|string|min:10|max:1000',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
+        ]);
+
+        $melderId = $this->handleMelderData($validated);
+        $photoPath = $this->handlePhotoUpload($request);
+
+        $complaint = Complaint::create([
+            'category' => $validated['category'],
+            'address' => $validated['address'],
+            'description' => $validated['description'],
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'melder_id' => $melderId,
+            'photo_path' => $photoPath,
+            'status' => 'new',
+            'complaint_number' => $this->generateComplaintNumber()
+        ]);
+
+        DB::commit();
+
+        session()->forget('location_data');
         
-        if ($complaint->photo_path) {
-            Storage::disk('public')->delete($complaint->photo_path);
-            $complaint->photo_path = null;
-            $complaint->save();
-        }
+        return redirect()->route('complaints.thankyou')
+            ->with('complaint_number', $complaint->complaint_number)
+            ->with('complaint_category', $complaint->category) 
+            ->with('success', 'Successfully submitted your complaint.');
 
-        return redirect()->back()->with('success', 'Foto succesvol verwijderd.');
-    }
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Complaint storage failed: ' . $e->getMessage());
 
-    /**
-     * عرض جميع الشكاوى للمسؤول (إضافة جديدة)
-     */
-    public function adminIndex()
-    {
-        $complaints = Complaint::with('melder')->latest()->get(); // أضف with('melder')
-        return view('complaints.admin.index', compact('complaints'));
+        return redirect()->back()
+            ->with('error', 'Failed to submit your complaint: ' . $e->getMessage())
+            ->withInput();
     }
+}
 
-    /**
-     * عرض تفاصيل شكوى معينة (إضافة جديدة)
-     */
-    public function show($id)
-    {
-        $complaint = Complaint::with('melder')->findOrFail($id); // أضف with('melder')
-        return view('complaints.admin.show', compact('complaint'));
-    }
+public function thankyou()
+{
+    $complaint_number = session('complaint_number');
+    $complaint_category = session('complaint_category');
+    // dd($complaint_number);
+    // if (!$complaint_number) {
+    //     return redirect()->route('complaints.create');
+    // }
+
+    return view('complaints.thankyou', compact('complaint_number', 'complaint_category'));
+}
 }
