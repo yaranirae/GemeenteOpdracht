@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* جميع الأنماط تبقى كما هي */
+ 
         body {
             background-color: #eef1f5;
             font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -34,17 +34,17 @@
             border-radius: 14px 14px 0 0;
             padding: 15px 20px;
         }
-        /* ... باقي الأنماط ... */
+      
     </style>
 </head>
 <body>
     <div class="container mt-4">
-        <!-- زر العودة -->
-        <a href="{{ route('admin.complaints') }}" class="btn btn-outline-secondary back-btn">
+        <!-- Terug naar klachten -->
+        <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary back-btn">
             <i class="fas fa-arrow-left"></i> Terug naar klachten
         </a>
 
-        <!-- معلومات الشكوى -->
+       <!-- klacht Details -->
         <div class="card">
             <div class="card-header">
                 <h4 class="mb-0">
@@ -53,9 +53,9 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <!-- المعلومات النصية -->
+                    <!-- informatie over de melder -->
                     <div class="col-md-6">
-                        <!-- معلومات المشتكي -->
+                        <!-- Melder informatie -->
                         <div class="card melder-card">
                             <div class="card-header">
                                 <h6 class="mb-0"><i class="fas fa-user"></i> Melder Informatie</h6>
@@ -88,8 +88,8 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <!-- الرابط الصحيح -->
-                                    <a href="{{ route('admin.melder.show', $complaint->melder->id) }}" 
+                                    
+                                    <a href="{{ route('admin.complaints') }}?search={{ $complaint->melder ? urlencode($complaint->melder->naam) : '' }}" 
                                        class="btn btn-outline-primary btn-sm">
                                         <i class="fas fa-eye"></i> Bekijk alle klachten van deze melder
                                     </a>
@@ -102,7 +102,7 @@
                             </div>
                         </div>
 
-                        <!-- معلومات الشكوى -->
+                        <!-- Klacht informatie -->
                         <div class="complaint-info">
                             <div class="info-item">
                                 <span class="info-label"><i class="fas fa-tag"></i> Categorie:</span>
@@ -136,7 +136,7 @@
                             </div>
                         </div>
 
-                        <!-- وصف الشكوى -->
+                        <!-- Klacht beschrijving -->
                         <div class="card">
                             <div class="card-header">
                                 <h6 class="mb-0"><i class="fas fa-file-alt"></i> Beschrijving</h6>
@@ -147,7 +147,7 @@
                         </div>
                     </div>
 
-                    <!-- الصورة -->
+                    <!-- Foto -->
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header">
@@ -165,7 +165,7 @@
                                            class="btn btn-outline-primary btn-sm">
                                             <i class="fas fa-expand"></i> Volledig beeld
                                         </a>
-                                        <!-- رابط حذف الصورة -->
+                                        <!-- Verwijder foto link -->
                                         <form action="{{ route('complaints.deletePhoto', $complaint->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
@@ -184,7 +184,7 @@
                             </div>
                         </div>
 
-                        <!-- الإحداثيات -->
+                        <!-- Locatie -->
                         @if($complaint->latitude && $complaint->longitude)
                         <div class="card mt-3">
                             <div class="card-header">
@@ -214,7 +214,7 @@
             </div>
         </div>
 
-        <!-- نموذج تغيير الحالة -->
+        <!-- Status update form -->
         <form action="{{ route('admin.complaints.status', $complaint->id) }}" method="POST" class="mb-3">
             @csrf
             <div class="card">
@@ -255,7 +255,7 @@
             </div>
         </form>
 
-        <!-- نموذج إرسال رسالة مخصصة -->
+        <!-- Stuur een aangepaste bericht -->
         @if($complaint->melder && $complaint->melder->email)
         <form action="{{ route('complaints.sendMessage', $complaint->id) }}" method="POST" class="mb-3">
             @csrf
@@ -284,7 +284,7 @@
         </div>
         @endif
 
-        <!-- إجراءات إضافية -->
+        <!-- Extra acties -->
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0"><i class="fas fa-cog"></i> Acties</h5>
@@ -314,9 +314,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // إضافة تأثيرات بسيطة
+        // Voeg eenvoudige effecten toe
         document.addEventListener('DOMContentLoaded', function() {
-            // تأثير عند تحميل الصفحة
+            // Effect bij het laden van de pagina
             const cards = document.querySelectorAll('.card');
             cards.forEach((card, index) => {
                 card.style.opacity = '0';
@@ -329,7 +329,7 @@
                 }, index * 100);
             });
 
-            // تحديث تلقائي للنموذج عند تغيير الحالة
+            // Automatische update van het formulier bij statuswijziging
             const statusSelect = document.getElementById('status');
             if (statusSelect) {
                 statusSelect.addEventListener('change', function() {

@@ -42,4 +42,37 @@ class MapController extends Controller
             'message' => 'لم يتم العثور على العنوان'
         ]);
     }
+
+    /**
+     * عكس الجيو كودينغ - الحصول على العنوان من الإحداثيات
+     */
+    public function reverseGeocode(Request $request)
+    {
+        $lat = $request->input('lat');
+        $lng = $request->input('lng');
+        
+        $url = "https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng";
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_USERAGENT, "Laravel-Reverse-Geocoding");
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        
+        $data = json_decode($response, true);
+        
+        if (!empty($data) && isset($data['display_name'])) {
+            return response()->json([
+                'success' => true,
+                'address' => $data['display_name']
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'لم يتم العثور على العنوان'
+        ]);
+    }
 }
