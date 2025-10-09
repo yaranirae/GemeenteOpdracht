@@ -70,14 +70,17 @@
         <thead>
             <tr>
                 <th>ID</th>
-                <th>de conditie</th>
+                <th>Melder</th>
+                <th>Status</th>
                 <th>Procedures</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($complaints as $complaint)
+            
                 <tr>
                     <td>{{ $complaint->id }}</td>
+                    <td>{{ $complaint->melder->naam ?? 'غير معروف' }}</td>
                     <td>{{ $complaint->status }}</td>
                     <td>
                         <a href="{{ route('admin.complaints.show', $complaint->id) }}">view</a>
