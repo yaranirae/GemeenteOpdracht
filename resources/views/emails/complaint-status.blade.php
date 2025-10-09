@@ -58,13 +58,15 @@
         </div>
         
         <div class="content">
-            <h2>Beste {{ $complaint->name ?? 'Geachte heer/mevrouw' }},</h2>
+            <!-- ✅ استخدام naam بدلاً من name -->
+            <h2>Beste {{ $complaint->melder->naam ?? 'Geachte heer/mevrouw' }},</h2>
             
             <p>Wij informeren u over de actuele status van uw ingediende klacht.</p>
             
             <div class="complaint-info">
                 <strong>Klachtgegevens:</strong><br>
-                Klachtnummer: <strong>#{{ $complaint->id }}</strong><br>
+                <!-- ✅ استخدام complaint_number بدلاً من id -->
+                Klachtnummer: <strong>#{{ $complaint->complaint_number }}</strong><br>
                 Categorie: {{ $complaint->category }}<br>
                 Locatie: {{ $complaint->address }}<br>
                 Datum indiening: {{ $complaint->created_at->format('d-m-Y H:i') }}<br><br>
@@ -75,6 +77,7 @@
                     @elseif($complaint->status == 'in_progress') #17a2b8
                     @elseif($complaint->status == 'resolved') #28a745
                     @endif;">
+                    <!-- ✅ استدعاء الدالة بشكل صحيح -->
                     {{ $getStatusText($complaint->status) }}
                 </span>
             </div>
@@ -91,7 +94,7 @@
                 @if($complaint->status == 'new')
                 ✔️ Uw klacht is bij ons binnen<br>
                 ✔️ Wij nemen zo spoedig mogelijk contact op<br>
-                ✔️ Het klachtnummer is: <strong>#{{ $complaint->id }}</strong>
+                ✔️ Het klachtnummer is: <strong>#{{ $complaint->complaint_number }}</strong>
                 @elseif($complaint->status == 'in_progress')
                 ✔️ Onze medewerkers zijn op de hoogte<br>
                 ✔️ We werken aan een oplossing<br>

@@ -63,7 +63,7 @@ class ComplaintController extends Controller
     /**
      * حفظ الشكوى الجديدة
      */
-    
+
     /**
      * معالجة بيانات المشتكي
      */
@@ -114,65 +114,96 @@ class ComplaintController extends Controller
      * صفحة الشكر بعد تقديم الشكوى
      */
     public function store(Request $request)
-{
-    DB::beginTransaction();
+    {
+        DB::beginTransaction();
 
-    try {
-        $validated = $request->validate([
-            'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,overig',
-            'address' => 'required|string|max:255',
-            'description' => 'required|string|min:10|max:1000',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-            'name' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
-        ]);
+        try {
+            $validated = $request->validate([
+                'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,overig',
+                'address' => 'required|string|max:255',
+                'description' => 'required|string|min:10|max:1000',
+                'latitude' => 'required|numeric|between:-90,90',
+                'longitude' => 'required|numeric|between:-180,180',
+                'name' => 'nullable|string|max:255',
+                'email' => 'nullable|email|max:255',
+                'phone' => 'nullable|string|max:20',
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
+            ]);
 
-        $melderId = $this->handleMelderData($validated);
-        $photoPath = $this->handlePhotoUpload($request);
+            $melderId = $this->handleMelderData($validated);
+            $photoPath = $this->handlePhotoUpload($request);
 
-        $complaint = Complaint::create([
-            'category' => $validated['category'],
-            'address' => $validated['address'],
-            'description' => $validated['description'],
-            'latitude' => $validated['latitude'],
-            'longitude' => $validated['longitude'],
-            'melder_id' => $melderId,
-            'photo_path' => $photoPath,
-            'status' => 'new',
-            'complaint_number' => $this->generateComplaintNumber()
-        ]);
+            $complaint = Complaint::create([
+                'category' => $validated['category'],
+                'address' => $validated['address'],
+                'description' => $validated['description'],
+                'latitude' => $validated['latitude'],
+                'longitude' => $validated['longitude'],
+                'melder_id' => $melderId,
+                'photo_path' => $photoPath,
+                'status' => 'new',
+                'complaint_number' => $this->generateComplaintNumber()
+            ]);
 
-        DB::commit();
+            DB::commit();
 
-        session()->forget('location_data');
-        
-        return redirect()->route('complaints.thankyou')
-            ->with('complaint_number', $complaint->complaint_number)
-            ->with('complaint_category', $complaint->category) 
-            ->with('success', 'Successfully submitted your complaint.');
+            session()->forget('location_data');
 
-    } catch (\Exception $e) {
-        DB::rollBack();
-        \Log::error('Complaint storage failed: ' . $e->getMessage());
+            return redirect()->route('complaints.thankyou')
+                ->with('complaint_number', $complaint->complaint_number)
+                ->with('complaint_category', $complaint->category)
+                ->with('success', 'Successfully submitted your complaint.');
 
-        return redirect()->back()
-            ->with('error', 'Failed to submit your complaint: ' . $e->getMessage())
-            ->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Complaint storage failed: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', 'Failed to submit your complaint: ' . $e->getMessage())
+                ->withInput();
+        }
     }
-}
 
-public function thankyou()
+    public function thankyou()
+    {
+        $complaint_number = session('complaint_number');
+        $complaint_category = session('complaint_category');
+        // dd($complaint_number);
+        // if (!$complaint_number) {
+        //     return redirect()->route('complaints.create');
+        // }
+
+        return view('complaints.thankyou', compact('complaint_number', 'complaint_category'));
+    }
+    /**
+     * إرسال رسالة مخصصة إلى المبلغ
+     */
+    public function sendCustomMessage(Request $request, $id)
 {
-    $complaint_number = session('complaint_number');
-    $complaint_category = session('complaint_category');
-    // dd($complaint_number);
-    // if (!$complaint_number) {
-    //     return redirect()->route('complaints.create');
-    // }
-
-    return view('complaints.thankyou', compact('complaint_number', 'complaint_category'));
+    $complaint = Complaint::with('melder')->findOrFail($id);
+    
+    $validated = $request->validate([
+        'message' => 'required|string|min:10|max:1000'
+    ]);
+    
+    if (!$complaint->melder || !$complaint->melder->email) {
+        return redirect()->back()
+            ->with('error', 'Geen e-mailadres beschikbaar voor deze klager.');
+    }
+    
+    try {
+        // ✅ إرسال البريد مع الرسالة المخصصة
+        Mail::to($complaint->melder->email)
+            ->send(new ComplaintStatusMail($complaint, $validated['message']));
+        
+        return redirect()->back()
+            ->with('success', 'Bericht succesvol verzonden naar ' . $complaint->melder->naam);
+            
+    } catch (\Exception $e) {
+        \Log::error('Failed to send custom message: ' . $e->getMessage());
+        
+        return redirect()->back()
+            ->with('error', 'Fout bij het verzenden van bericht: ' . $e->getMessage());
+    }
 }
 }
