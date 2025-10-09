@@ -20,7 +20,7 @@ class AdminController extends Controller
 
     public function dashboard()
     {
-        $recentComplaints = Complaint::with('melder')->latest()->take(5)->get(); // أضف with('melder')
+        $recentComplaints = Complaint::with('melder')->latest()->take(5)->get(); 
         $totalComplaints = Complaint::count();
         $newComplaints = Complaint::where('status', 'new')->count();
         $resolvedComplaints = Complaint::where('status', 'resolved')->count();
@@ -177,4 +177,7 @@ public function complaints(Request $request)
     return view('admin.complaints', compact('complaints', 'categories', 'allMelders'));
         
     }
+
+
+    
 }
