@@ -20,7 +20,20 @@ class AdminController extends Controller
 
     public function dashboard()
     {
-        $recentComplaints = Complaint::with('melder')->latest()->take(5)->get(); 
+        // جلب معامل الترتيب من الرابط أو استخدام القيمة الافتراضية
+        $sort = request('sort', 'newest');
+        
+        // بناء الاستعلام مع إضافة الترتيب
+        $recentComplaints = Complaint::with('melder')
+            ->when($sort == 'newest', function($query) {
+                $query->latest();
+            })
+            ->when($sort == 'oldest', function($query) {
+                $query->oldest();
+            })
+            ->take(5)
+            ->get();
+
         $totalComplaints = Complaint::count();
         $newComplaints = Complaint::where('status', 'new')->count();
         $resolvedComplaints = Complaint::where('status', 'resolved')->count();
@@ -28,58 +41,65 @@ class AdminController extends Controller
         // Haal categorieën op voor het zoekformulier
         $categories = Complaint::distinct()->pluck('category');
         
-        return view('admin.dashboard', compact('recentComplaints', 'totalComplaints', 'newComplaints', 'resolvedComplaints', 'categories'));
+        return view('admin.dashboard', compact(
+            'recentComplaints', 
+            'totalComplaints', 
+            'newComplaints', 
+            'resolvedComplaints', 
+            'categories',
+            'sort'
+        ));
     }
 
-public function complaints(Request $request)
-{
-    $query = Complaint::with('melder');
+    public function complaints(Request $request)
+    {
+        $query = Complaint::with('melder');
 
-    // Uitgebreide zoekfunctionaliteit
-    if ($request->has('search') && !empty($request->search)) {
-        $searchTerm = $request->search;
-        $query->where(function($q) use ($searchTerm) {
-            $q->where('id', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('category', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('address', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('description', 'LIKE', "%{$searchTerm}%")
-              ->orWhereHas('melder', function($melderQuery) use ($searchTerm) {
-                  $melderQuery->where('naam', 'LIKE', "%{$searchTerm}%")
-                             ->orWhere('email', 'LIKE', "%{$searchTerm}%")
-                             ->orWhere('mobiel', 'LIKE', "%{$searchTerm}%");
-              });
-        });
+        // Uitgebreide zoekfunctionaliteit
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('id', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('category', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('address', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('description', 'LIKE', "%{$searchTerm}%")
+                  ->orWhereHas('melder', function($melderQuery) use ($searchTerm) {
+                      $melderQuery->where('naam', 'LIKE', "%{$searchTerm}%")
+                                 ->orWhere('email', 'LIKE', "%{$searchTerm}%")
+                                 ->orWhere('mobiel', 'LIKE', "%{$searchTerm}%");
+                  });
+            });
+        }
+
+        // Filteren op status
+        if ($request->has('status') && !empty($request->status)) {
+            $query->where('status', $request->status);
+        }
+
+        // Filteren op categorie
+        if ($request->has('category') && !empty($request->category)) {
+            $query->where('category', $request->category);
+        }
+
+        // Filteren op melder - هذا هو التصحيح
+        if ($request->has('melder_name') && !empty($request->melder_name)) {
+            $query->whereHas('melder', function($melderQuery) use ($request) {
+                $melderQuery->where('naam', 'LIKE', "%{$request->melder_name}%");
+            });
+        }
+
+        $complaints = $query->latest()->paginate(10);
+        
+        // Haal alle unieke categorieën op voor het dropdown menu
+        $categories = Complaint::distinct()->pluck('category');
+        
+        // Haal alle melders op voor het dropdown menu
+        $allMelders = Melder::withCount('complaints')
+                            ->orderBy('naam')
+                            ->get();
+
+        return view('admin.complaints', compact('complaints', 'categories', 'allMelders'));
     }
-
-    // Filteren op status
-    if ($request->has('status') && !empty($request->status)) {
-        $query->where('status', $request->status);
-    }
-
-    // Filteren op categorie
-    if ($request->has('category') && !empty($request->category)) {
-        $query->where('category', $request->category);
-    }
-
-    // Filteren op melder - هذا هو التصحيح
-    if ($request->has('melder_name') && !empty($request->melder_name)) {
-        $query->whereHas('melder', function($melderQuery) use ($request) {
-            $melderQuery->where('naam', 'LIKE', "%{$request->melder_name}%");
-        });
-    }
-
-    $complaints = $query->latest()->paginate(10);
-    
-    // Haal alle unieke categorieën op voor het dropdown menu
-    $categories = Complaint::distinct()->pluck('category');
-    
-    // Haal alle melders op voor het dropdown menu
-    $allMelders = Melder::withCount('complaints')
-                        ->orderBy('naam')
-                        ->get();
-
-    return view('admin.complaints', compact('complaints', 'categories', 'allMelders'));
-}
 
     public function showComplaint($id)
     {
@@ -172,12 +192,6 @@ public function complaints(Request $request)
             $query->latest();
         }])->findOrFail($id);
 
-        // return view('admin.melder-details', compact('melder'));
-
-    return view('admin.complaints', compact('complaints', 'categories', 'allMelders'));
-        
+        return view('admin.melder-details', compact('melder'));
     }
-
-
-    
 }
