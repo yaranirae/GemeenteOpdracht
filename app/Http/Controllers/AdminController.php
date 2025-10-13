@@ -194,4 +194,91 @@ class AdminController extends Controller
 
         return view('admin.melder-details', compact('melder'));
     }
+
+    // في AdminController أضف هذه الدوال
+    public function autoAnonymizeOldData()
+    {
+        $anonymizedCount = 0;
+        
+        // تجهيل المشتكين القدامى
+        $oldMelders = Melder::where('created_at', '<', now()->subMinutes(3))->get();
+        
+        foreach ($oldMelders as $melder) {
+            // احتفظ بالعلاقات لكن جهل البيانات الشخصية
+            $melder->update([
+                'naam' => 'Anonieme Melder',
+                'email' => 'anoniem' . $melder->id . '@gemeente.nl',
+                'mobiel' => '06-00000000'
+            ]);
+            $anonymizedCount++;
+        }
+        
+        return $anonymizedCount;
+    }
+
+    // في AdminController
+    public function dataManagement()
+    {
+        $dataStats = [
+            'totalMelders' => Melder::count(),
+            'totalComplaints' => Complaint::count(),
+            'oldMelders' => Melder::where('created_at', '<', now()->subMinutes(3))->count(),
+            'oldComplaints' => Complaint::where('created_at', '<', now()->subMinutes(2))->count(),
+            'retentionPeriods' => $this->getRetentionPeriods() // استدعاء محلي
+        ];
+        
+        return view('admin.data-management', compact('dataStats'));
+    }
+
+    public function executeDataCleanup()
+    {
+        $anonymized = $this->autoAnonymizeOldData();
+        
+        return redirect()->route('admin.data-management')
+            ->with('success', "تم تجهيل بيانات {$anonymized} مشتكي قديم بنجاح");
+    }
+
+    public function privacyPolicy()
+    {
+        $policy = [
+            'collected_data' => [
+                'name' => 'Naam - voor identificatie van melder',
+                'email' => 'E-mail - voor notificaties en opvolging', 
+                'phone' => 'Telefoonnummer - voor dringende communicatie'
+            ],
+            'non_collected_data' => [
+                'bsn' => 'Burgerservicenummer (BSN)',
+                'birth_date' => 'Geboortedatum',
+                'address' => 'Huisadres',
+                'id_number' => 'Identiteitsnummer'
+            ],
+            'retention_periods' => [
+                'complaints' => [
+                    'period' => 2,
+                    'description' => 'Voor analyse en gemeentelijke statistieken'
+                ],
+                'melders' => [
+                    'period' => 3, 
+                    'description' => 'Voor serviceverbetering en herkenning van terugkerende melders'
+                ]
+            ]
+        ];
+        
+        return view('privacy-policy', compact('policy'));
+    }
+
+    // دالة مساعدة محلية بدلاً من كلاس منفصل
+    private function getRetentionPeriods()
+    {
+        return [
+            'complaints' => [
+                'period' => 2,
+                'description' => 'Voor analyse en gemeentelijke statistieken'
+            ],
+            'melders' => [
+                'period' => 3,
+                'description' => 'Voor serviceverbetering en herkenning van terugkerende melders'
+            ]
+        ];
+    }
 }

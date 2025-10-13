@@ -228,17 +228,19 @@
                         <div class="sort-buttons">
                             <h6 class="mb-2">Sorteer klachten:</h6>
                             <div class="btn-group" role="group">
-                                <a href="?sort=newest" class="btn btn-{{ ($sort ?? 'newest') == 'newest' ? 'primary' : 'outline-primary' }}">
+                                <a href="?sort=newest"
+                                    class="btn btn-{{ ($sort ?? 'newest') == 'newest' ? 'primary' : 'outline-primary' }}">
                                     <i class="fas fa-sort-amount-down me-1"></i> Nieuwste eerst
                                 </a>
-                                <a href="?sort=oldest" class="btn btn-{{ ($sort ?? 'newest') == 'oldest' ? 'primary' : 'outline-primary' }}">
+                                <a href="?sort=oldest"
+                                    class="btn btn-{{ ($sort ?? 'newest') == 'oldest' ? 'primary' : 'outline-primary' }}">
                                     <i class="fas fa-sort-amount-up me-1"></i> Oudste eerst
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
-               
+
                 <!-- Recent Complaints -->
                 <div class="row">
                     <div class="col-12">
@@ -247,7 +249,7 @@
                                 <h6 class="m-0 font-weight-bold text-primary">Recente Klachten</h6>
                                 <div>
                                     <span class="text-muted me-2">
-                                        Sortering: 
+                                        Sortering:
                                         @if(($sort ?? 'newest') == 'newest')
                                             Nieuwste eerst
                                         @else
@@ -281,10 +283,10 @@
                                                         <td>{{ $complaint->address }}</td>
                                                         <td>
                                                             <span class="badge status-badge
-                                                                        @if($complaint->status == 'new') bg-warning
-                                                                        @elseif($complaint->status == 'in_progress') bg-info
-                                                                        @elseif($complaint->status == 'resolved') bg-success
-                                                                        @endif">
+                                                                                @if($complaint->status == 'new') bg-warning
+                                                                                @elseif($complaint->status == 'in_progress') bg-info
+                                                                                @elseif($complaint->status == 'resolved') bg-success
+                                                                                @endif">
                                                                 @if($complaint->status == 'new') Nieuw
                                                                 @elseif($complaint->status == 'in_progress') In behandeling
                                                                 @elseif($complaint->status == 'resolved') Opgelost
@@ -361,6 +363,14 @@
                     </div>
                 </form>
             </div>
+        </div>
+
+        <div class="card-footer">
+            <small class="text-muted">
+                <a href="{{ route('privacy.policy') }}" class="text-muted">
+                    <i class="fas fa-shield-alt me-1"></i> Privacy & Gegevensbeheer
+                </a>
+            </small>
         </div>
     </div>
 
