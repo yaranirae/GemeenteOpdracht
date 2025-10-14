@@ -9,20 +9,17 @@ class Complaint extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'category',
-        'address',
-        'description',
-        'latitude',
-        'longitude',
-        'name',
-        'email',
-        'phone',
-        'photo_path',
-        'status',
-        'melder_id' 
-    ];
-
+protected $fillable = [
+    'complaint_number',
+    'category',
+    'address',
+    'description',
+    'latitude',
+    'longitude',
+    'melder_id',  
+    'photo_path',
+    'status'
+];
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',
@@ -41,4 +38,6 @@ class Complaint extends Model
     {
         return $this->belongsTo(Melder::class);
     }
+
+    
 }

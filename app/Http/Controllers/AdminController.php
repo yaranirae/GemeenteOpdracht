@@ -20,7 +20,20 @@ class AdminController extends Controller
 
     public function dashboard()
     {
-        $recentComplaints = Complaint::with('melder')->latest()->take(5)->get(); // أضف with('melder')
+        // جلب معامل الترتيب من الرابط أو استخدام القيمة الافتراضية
+        $sort = request('sort', 'newest');
+        
+        // بناء الاستعلام مع إضافة الترتيب
+        $recentComplaints = Complaint::with('melder')
+            ->when($sort == 'newest', function($query) {
+                $query->latest();
+            })
+            ->when($sort == 'oldest', function($query) {
+                $query->oldest();
+            })
+            ->take(5)
+            ->get();
+
         $totalComplaints = Complaint::count();
         $newComplaints = Complaint::where('status', 'new')->count();
         $resolvedComplaints = Complaint::where('status', 'resolved')->count();
@@ -28,62 +41,69 @@ class AdminController extends Controller
         // Haal categorieën op voor het zoekformulier
         $categories = Complaint::distinct()->pluck('category');
         
-        return view('admin.dashboard', compact('recentComplaints', 'totalComplaints', 'newComplaints', 'resolvedComplaints', 'categories'));
+        return view('admin.dashboard', compact(
+            'recentComplaints', 
+            'totalComplaints', 
+            'newComplaints', 
+            'resolvedComplaints', 
+            'categories',
+            'sort'
+        ));
     }
 
-public function complaints(Request $request)
-{
-    $query = Complaint::with('melder');
+    public function complaints(Request $request)
+    {
+        $query = Complaint::with('melder');
 
-    // Uitgebreide zoekfunctionaliteit
-    if ($request->has('search') && !empty($request->search)) {
-        $searchTerm = $request->search;
-        $query->where(function($q) use ($searchTerm) {
-            $q->where('id', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('category', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('address', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('description', 'LIKE', "%{$searchTerm}%")
-              ->orWhereHas('melder', function($melderQuery) use ($searchTerm) {
-                  $melderQuery->where('naam', 'LIKE', "%{$searchTerm}%")
-                             ->orWhere('email', 'LIKE', "%{$searchTerm}%")
-                             ->orWhere('mobiel', 'LIKE', "%{$searchTerm}%");
-              });
-        });
+        // Uitgebreide zoekfunctionaliteit
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('id', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('category', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('address', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('description', 'LIKE', "%{$searchTerm}%")
+                  ->orWhereHas('melder', function($melderQuery) use ($searchTerm) {
+                      $melderQuery->where('naam', 'LIKE', "%{$searchTerm}%")
+                                 ->orWhere('email', 'LIKE', "%{$searchTerm}%")
+                                 ->orWhere('mobiel', 'LIKE', "%{$searchTerm}%");
+                  });
+            });
+        }
+
+        // Filteren op status
+        if ($request->has('status') && !empty($request->status)) {
+            $query->where('status', $request->status);
+        }
+
+        // Filteren op categorie
+        if ($request->has('category') && !empty($request->category)) {
+            $query->where('category', $request->category);
+        }
+
+        // Filteren op melder - هذا هو التصحيح
+        if ($request->has('melder_name') && !empty($request->melder_name)) {
+            $query->whereHas('melder', function($melderQuery) use ($request) {
+                $melderQuery->where('naam', 'LIKE', "%{$request->melder_name}%");
+            });
+        }
+
+        $complaints = $query->latest()->paginate(10);
+        
+        // Haal alle unieke categorieën op voor het dropdown menu
+        $categories = Complaint::distinct()->pluck('category');
+        
+        // Haal alle melders op voor het dropdown menu
+        $allMelders = Melder::withCount('complaints')
+                            ->orderBy('naam')
+                            ->get();
+
+        return view('admin.complaints', compact('complaints', 'categories', 'allMelders'));
     }
-
-    // Filteren op status
-    if ($request->has('status') && !empty($request->status)) {
-        $query->where('status', $request->status);
-    }
-
-    // Filteren op categorie
-    if ($request->has('category') && !empty($request->category)) {
-        $query->where('category', $request->category);
-    }
-
-    // Filteren op melder - هذا هو التصحيح
-    if ($request->has('melder_name') && !empty($request->melder_name)) {
-        $query->whereHas('melder', function($melderQuery) use ($request) {
-            $melderQuery->where('naam', 'LIKE', "%{$request->melder_name}%");
-        });
-    }
-
-    $complaints = $query->latest()->paginate(10);
-    
-    // Haal alle unieke categorieën op voor het dropdown menu
-    $categories = Complaint::distinct()->pluck('category');
-    
-    // Haal alle melders op voor het dropdown menu
-    $allMelders = Melder::withCount('complaints')
-                        ->orderBy('naam')
-                        ->get();
-
-    return view('admin.complaints', compact('complaints', 'categories', 'allMelders'));
-}
 
     public function showComplaint($id)
     {
-        $complaint = Complaint::with('melder')->findOrFail($id); // أضف with('melder')
+        $complaint = Complaint::with('melder')->findOrFail($id); 
         return view('admin.complaint-details', compact('complaint'));
     }
 
@@ -94,12 +114,12 @@ public function complaints(Request $request)
             'message' => 'nullable|string|max:500'
         ]);
 
-        $complaint = Complaint::with('melder')->findOrFail($id); // أضف with('melder')
+        $complaint = Complaint::with('melder')->findOrFail($id); 
         $oldStatus = $complaint->status;
         $complaint->status = $request->status;
         $complaint->save();
 
-        // Stuur notificatie als aangevinkt - تحديث للعمل مع melder
+        // Stuur notificatie als aangevinkt - update voor melder
         if ($request->has('send_notification') && $complaint->melder && $complaint->melder->email) {
             $melder = $complaint->melder;
             $message = $request->message ?: $this->getDefaultMessage($request->status);
@@ -173,5 +193,92 @@ public function complaints(Request $request)
         }])->findOrFail($id);
 
         return view('admin.melder-details', compact('melder'));
+    }
+
+    // في AdminController أضف هذه الدوال
+    public function autoAnonymizeOldData()
+    {
+        $anonymizedCount = 0;
+        
+        // تجهيل المشتكين القدامى
+        $oldMelders = Melder::where('created_at', '<', now()->subMinutes(3))->get();
+        
+        foreach ($oldMelders as $melder) {
+            // احتفظ بالعلاقات لكن جهل البيانات الشخصية
+            $melder->update([
+                'naam' => 'Anonieme Melder',
+                'email' => 'anoniem' . $melder->id . '@gemeente.nl',
+                'mobiel' => '06-00000000'
+            ]);
+            $anonymizedCount++;
+        }
+        
+        return $anonymizedCount;
+    }
+
+    // في AdminController
+    public function dataManagement()
+    {
+        $dataStats = [
+            'totalMelders' => Melder::count(),
+            'totalComplaints' => Complaint::count(),
+            'oldMelders' => Melder::where('created_at', '<', now()->subMinutes(3))->count(),
+            'oldComplaints' => Complaint::where('created_at', '<', now()->subMinutes(2))->count(),
+            'retentionPeriods' => $this->getRetentionPeriods() // استدعاء محلي
+        ];
+        
+        return view('admin.data-management', compact('dataStats'));
+    }
+
+    public function executeDataCleanup()
+    {
+        $anonymized = $this->autoAnonymizeOldData();
+        
+        return redirect()->route('admin.data-management')
+            ->with('success', "تم تجهيل بيانات {$anonymized} مشتكي قديم بنجاح");
+    }
+
+    public function privacyPolicy()
+    {
+        $policy = [
+            'collected_data' => [
+                'name' => 'Naam - voor identificatie van melder',
+                'email' => 'E-mail - voor notificaties en opvolging', 
+                'phone' => 'Telefoonnummer - voor dringende communicatie'
+            ],
+            'non_collected_data' => [
+                'bsn' => 'Burgerservicenummer (BSN)',
+                'birth_date' => 'Geboortedatum',
+                'address' => 'Huisadres',
+                'id_number' => 'Identiteitsnummer'
+            ],
+            'retention_periods' => [
+                'complaints' => [
+                    'period' => 2,
+                    'description' => 'Voor analyse en gemeentelijke statistieken'
+                ],
+                'melders' => [
+                    'period' => 3, 
+                    'description' => 'Voor serviceverbetering en herkenning van terugkerende melders'
+                ]
+            ]
+        ];
+        
+        return view('privacy-policy', compact('policy'));
+    }
+
+    // دالة مساعدة محلية بدلاً من كلاس منفصل
+    private function getRetentionPeriods()
+    {
+        return [
+            'complaints' => [
+                'period' => 2,
+                'description' => 'Voor analyse en gemeentelijke statistieken'
+            ],
+            'melders' => [
+                'period' => 3,
+                'description' => 'Voor serviceverbetering en herkenning van terugkerende melders'
+            ]
+        ];
     }
 }

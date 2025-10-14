@@ -17,10 +17,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// ✅ أضف هذا السطر - سياسة الخصوصية (خارج الـ admin)
+Route::get('/privacy-beleid', [AdminController::class, 'privacyPolicy'])->name('privacy.policy');
 
 // خريطة الموقع
 Route::get('/map', [MapController::class, 'showMap'])->name('map.show');
 Route::post('/geocode', [MapController::class, 'geocodeAddress'])->name('geocode');
+Route::post('/reverse-geocode', [MapController::class, 'reverseGeocode'])->name('reverse.geocode');
 
 // مسارات الشكاوى العامة
 Route::prefix('klachten')->group(function () {
@@ -41,7 +44,14 @@ Route::prefix('complaints')->group(function () {
 Route::prefix('admin')->middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-
+    Route::get('/data-management', [AdminController::class, 'dataManagement'])->name('admin.data-management');
+     Route::post('/data-cleanup', [AdminController::class, 'executeDataCleanup'])->name('admin.execute-data-cleanup');
+// Route::post('/data-cleanup', function() {
+//     $controller = new App\Http\Controllers\AdminController();
+//     $result = $controller->autoAnonymizeOldData();
+    
+//     return redirect()->back()->with('success', "تم تجهيل {$result} مشتكي");
+// });
     // إدارة الشكاوى
     Route::prefix('complaints')->group(function () {
         Route::get('/', [AdminController::class, 'complaints'])->name('admin.complaints');
