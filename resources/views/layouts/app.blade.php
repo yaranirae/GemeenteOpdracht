@@ -77,5 +77,22 @@
             @yield('content')
         </main>
     </div>
+
+    
+<footer class="bg-dark text-white py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <p>&copy; 2024 Gemeente. Alle rechten voorbehouden.</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <a href="{{ route('privacy.policy') }}" class="text-white me-3">
+                    <i class="fas fa-shield-alt me-1"></i> Privacybeleid
+                </a>
+                <!-- روابط أخرى -->
+            </div>
+        </div>
+    </div>
+</footer>
 </body>
 </html>

@@ -113,57 +113,61 @@ class ComplaintController extends Controller
     /**
      * صفحة الشكر بعد تقديم الشكوى
      */
-    public function store(Request $request)
-    {
-        DB::beginTransaction();
+   public function store(Request $request)
+{
+    DB::beginTransaction();
 
-        try {
-            $validated = $request->validate([
-                'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,overig',
-                'address' => 'required|string|max:255',
-                'description' => 'required|string|min:10|max:1000',
-                'latitude' => 'required|numeric|between:-90,90',
-                'longitude' => 'required|numeric|between:-180,180',
-                'name' => 'nullable|string|max:255',
-                'email' => 'nullable|email|max:255',
-                'phone' => 'nullable|string|max:20',
-                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
-            ]);
+    try {
+        $validated = $request->validate([
+            'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,overig',
+            'address' => 'required|string|max:255',
+            'description' => 'required|string|min:10|max:1000',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'name' => 'nullable|string|max:255',      // ✅ ابقى لهم للتحقق فقط
+            'email' => 'nullable|email|max:255',      // ✅ ابقى لهم للتحقق فقط
+            'phone' => 'nullable|string|max:20',      // ✅ ابقى لهم للتحقق فقط
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
+        ]);
 
-            $melderId = $this->handleMelderData($validated);
-            $photoPath = $this->handlePhotoUpload($request);
+        // معالجة بيانات المشتكي
+        $melderId = $this->handleMelderData($validated);
 
-            $complaint = Complaint::create([
-                'category' => $validated['category'],
-                'address' => $validated['address'],
-                'description' => $validated['description'],
-                'latitude' => $validated['latitude'],
-                'longitude' => $validated['longitude'],
-                'melder_id' => $melderId,
-                'photo_path' => $photoPath,
-                'status' => 'new',
-                'complaint_number' => $this->generateComplaintNumber()
-            ]);
+        // حفظ الصورة
+        $photoPath = $this->handlePhotoUpload($request);
 
-            DB::commit();
+        // إنشاء الشكوى - بدون الحقول المكررة
+        $complaint = Complaint::create([
+            'complaint_number' => $this->generateComplaintNumber(),
+            'category' => $validated['category'],
+            'address' => $validated['address'],
+            'description' => $validated['description'],
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'melder_id' => $melderId,  // ✅ فقط melder_id للربط
+            'photo_path' => $photoPath,
+            'status' => 'new'
+            // ❌ لا يوجد name, email, phone هنا!
+        ]);
 
-            session()->forget('location_data');
+        DB::commit();
 
-            return redirect()->route('complaints.thankyou')
-                ->with('complaint_number', $complaint->complaint_number)
-                ->with('complaint_category', $complaint->category)
-                ->with('success', 'Successfully submitted your complaint.');
+        session()->forget('location_data');
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Complaint storage failed: ' . $e->getMessage());
+        return redirect()->route('complaints.thankyou')
+            ->with('complaint_number', $complaint->complaint_number)
+            ->with('complaint_category', $complaint->category)
+            ->with('success', 'Successfully submitted your complaint.');
 
-            return redirect()->back()
-                ->with('error', 'Failed to submit your complaint: ' . $e->getMessage())
-                ->withInput();
-        }
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Complaint storage failed: ' . $e->getMessage());
+
+        return redirect()->back()
+            ->with('error', 'Failed to submit your complaint: ' . $e->getMessage())
+            ->withInput();
     }
-
+}
     public function thankyou()
     {
         $complaint_number = session('complaint_number');
