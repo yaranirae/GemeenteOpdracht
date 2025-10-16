@@ -45,7 +45,9 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/data-management', [AdminController::class, 'dataManagement'])->name('admin.data-management');
-     Route::post('/data-cleanup', [AdminController::class, 'executeDataCleanup'])->name('admin.execute-data-cleanup');
+    Route::post('/data-cleanup', [AdminController::class, 'executeDataCleanup'])->name('admin.execute-data-cleanup');
+    Route::post('/data-deletion', [AdminController::class, 'executeDataDeletion'])->name('admin.execute-data-delete');
+
 // Route::post('/data-cleanup', function() {
 //     $controller = new App\Http\Controllers\AdminController();
 //     $result = $controller->autoAnonymizeOldData();
