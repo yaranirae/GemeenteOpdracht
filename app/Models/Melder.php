@@ -18,6 +18,6 @@ class Melder extends Model
     // العلاقة مع الشكاوى
     public function complaints()
     {
-        return $this->hasMany(Complaint::class);
+        return $this->hasMany(Complaint::class,'melder_id');
     }
 }

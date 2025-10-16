@@ -201,7 +201,7 @@ class AdminController extends Controller
         $anonymizedCount = 0;
         
         // تجهيل المشتكين القدامى
-        $oldMelders = Melder::where('created_at', '<', now()->subMinutes(3))->get();
+        $oldMelders = Melder::where('created_at', '<', now()->subMonths(3))->get();
         
         foreach ($oldMelders as $melder) {
             // احتفظ بالعلاقات لكن جهل البيانات الشخصية
@@ -216,15 +216,16 @@ class AdminController extends Controller
         return $anonymizedCount;
     }
 
-    // في AdminController
     public function dataManagement()
     {
         $dataStats = [
             'totalMelders' => Melder::count(),
             'totalComplaints' => Complaint::count(),
-            'oldMelders' => Melder::where('created_at', '<', now()->subMinutes(3))->count(),
+            'oldMelders' => Melder::where('created_at', '<', now()->subMonths(3))->count(),
             'oldComplaints' => Complaint::where('created_at', '<', now()->subMinutes(2))->count(),
-            'retentionPeriods' => $this->getRetentionPeriods() // استدعاء محلي
+            'meldersWithoutComplaints' => Melder::doesntHave('complaints')
+                                          ->where('created_at', '<', now()->subYear())->count(),
+            'retentionPeriods' => $this->getRetentionPeriods() 
         ];
         
         return view('admin.data-management', compact('dataStats'));
@@ -236,6 +237,14 @@ class AdminController extends Controller
         
         return redirect()->route('admin.data-management')
             ->with('success', "تم تجهيل بيانات {$anonymized} مشتكي قديم بنجاح");
+    }
+
+     public function executeDataDeletion()
+    {
+        $deleted = $this->autoDataDeleteData();
+
+        return redirect()->route('admin.data-management')
+            ->with('success', "تم حذف بيانات {$deleted} مشتكي قديم بنجاح");
     }
 
     public function privacyPolicy()
@@ -267,8 +276,7 @@ class AdminController extends Controller
         return view('privacy-policy', compact('policy'));
     }
 
-    // دالة مساعدة محلية بدلاً من كلاس منفصل
-    private function getRetentionPeriods()
+       private function getRetentionPeriods()
     {
         return [
             'complaints' => [
@@ -281,4 +289,50 @@ class AdminController extends Controller
             ]
         ];
     }
+public function autoDataDeleteData()
+{
+    $deletedCount = 0;
+    
+    // 1. حذف الشكاوى القديمة (أقدم من 2 دقيقة)
+    $oldComplaints = Complaint::where('created_at', '<', now()->subMinutes(2))->get();
+    
+    foreach ($oldComplaints as $complaint) {
+        if ($complaint->photo_path) {
+            Storage::disk('public')->delete($complaint->photo_path);
+        }
+        $complaint->delete();
+        $deletedCount++;
+    }
+
+    // 2. حذف المشتكين بدون شكاوى (أقدم من 3 دقائق)
+    $oldMelders = Melder::where('created_at', '<', now()->subMinutes(3))
+                        ->doesntHave('complaints')
+                        ->get();
+    
+    foreach ($oldMelders as $melder) {
+        $melder->delete();
+        $deletedCount++;
+    }
+      
+    return $deletedCount;
+}
+public function executeDataAnonymization()
+{
+    $anonymizedCount = 0;
+    
+    // تجهيل المشتكين القدامى (أقدم من 3 أشهر)
+    $oldMelders = Melder::where('created_at', '<', now()->subMonths(3))->get();
+    
+    foreach ($oldMelders as $melder) {
+        $melder->update([
+            'naam' => 'Anonieme Melder',
+            'email' => 'anoniem' . $melder->id . '@gemeente.nl',
+            'mobiel' => '06-00000000'
+        ]);
+        $anonymizedCount++;
+    }
+    
+    return $anonymizedCount;
+}
+
 }
