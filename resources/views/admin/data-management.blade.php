@@ -149,7 +149,7 @@
                         </div>
                     </div>
 
-                    <div class="col-xl-3 col-md-6 mb-4">
+                    <!-- <div class="col-xl-3 col-md-6 mb-4">
                         <div class="card border-left-warning shadow h-100 py-2">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
@@ -167,9 +167,9 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
-                    <div class="col-xl-3 col-md-6 mb-4">
+                    <!-- <div class="col-xl-3 col-md-6 mb-4">
                         <div class="card border-left-danger shadow h-100 py-2">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
@@ -189,7 +189,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <div class="col-xl-3 col-md-6 mb-4">
                         <div class="card border-left-info shadow h-100 py-2">
@@ -199,9 +199,9 @@
                                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                             Oude Klachten</div>
                                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $dataStats['oldComplaints'] ?? 0 }}</div>
-                                        <div class="text-xs text-muted mt-1">
+                                        <!-- <div class="text-xs text-muted mt-1">
                                             <i class="fas fa-hourglass-end"></i> Meer dan 2 jaar
-                                        </div>
+                                        </div> -->
                                     </div>
                                     <div class="col-auto">
                                         <i class="fas fa-file-alt fa-2x text-gray-300"></i>
