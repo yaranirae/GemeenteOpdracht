@@ -26,7 +26,7 @@ class Complaint extends Model
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',
-        'anonymized_at' => 'datetime' // أضف هذا
+        'anonymized_at' => 'datetime' 
     ];
 
     public function getPhotoUrlAttribute()

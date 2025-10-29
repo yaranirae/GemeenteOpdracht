@@ -165,24 +165,32 @@
                                     placeholder="4.9041">
                             </div>
                         </div>
-
+                        @php
+                            $userData = session('user_data');
+                        @endphp
                         <h5 class="mt-4 mb-3">Uw gegevens (optioneel)</h5>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="name" class="form-label">Naam</label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="Uw naam">
+                                <!-- <input type="text" class="form-control" id="name" name="name" placeholder="Uw naam"> -->
+                                <input type="text" name="name" class="form-control"
+                                    value="{{ old('name', $userData['name'] ?? '') }}" placeholder="Uw naam">
                             </div>
                             <div class="col-md-6">
                                 <label for="email" class="form-label">E-mail</label>
-                                <input type="email" class="form-control" id="email" name="email"
-                                    placeholder="uw@email.nl">
+                                <!-- <input type="email" class="form-control" id="email" name="email"
+                                    placeholder="uw@email.nl"> -->
+                                <input type="email" name="email" class="form-control"
+                                    value="{{ old('email', $userData['email'] ?? '') }}" placeholder="Uw e-mailadres">
                             </div>
                         </div>
 
                         <div class="mb-4">
                             <label for="phone" class="form-label">Telefoon</label>
-                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="06 12345678">
+                            <!-- <input type="tel" class="form-control" id="phone" name="phone" placeholder="06 12345678"> -->
+                            <input type="text" name="phone" class="form-control"
+                                value="{{ old('phone', $userData['phone'] ?? '') }}" placeholder="Uw telefoonnummer">
                         </div>
 
                         <div class="d-grid">
