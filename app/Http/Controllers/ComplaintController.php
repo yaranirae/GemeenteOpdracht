@@ -44,7 +44,7 @@ class ComplaintController extends Controller
     {
         // الحصول على بيانات الموقع من الجلسة إذا كانت موجودة
         $locationData = session('location_data');
-
+        $melderData = session('user_data'); //
 
         if ($locationData) {
             $address = $locationData['address'];
@@ -126,7 +126,13 @@ class ComplaintController extends Controller
                 'phone' => 'nullable|string|max:20',      // ✅ ابقى لهم للتحقق فقط
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
             ]);
-
+            session([
+                'user_data' => [
+                    'name' => $validated['name'] ?? null,
+                    'email' => $validated['email'] ?? null,
+                    'phone' => $validated['phone'] ?? null,
+                ]
+            ]);
             // معالجة بيانات المشتكي
             $melderId = $this->handleMelderData($validated);
 
@@ -151,15 +157,6 @@ class ComplaintController extends Controller
 
             session()->forget('location_data');
 
-            // ✅ حفظ بيانات المستخدم في الجلسة
-            session([
-                'user_data' => [
-                    'name' => $validated['name'] ?? null,
-                    'email' => $validated['email'] ?? null,
-                    'phone' => $validated['phone'] ?? null,
-                ]
-            ]);
-
             return redirect()->route('complaints.thankyou')
                 ->with('complaint_number', $complaint->complaint_number)
                 ->with('complaint_category', $complaint->category)
@@ -173,6 +170,7 @@ class ComplaintController extends Controller
                 ->with('error', 'Failed to submit your complaint: ' . $e->getMessage())
                 ->withInput();
         }
+
     }
     public function thankyou()
     {
@@ -215,5 +213,22 @@ class ComplaintController extends Controller
             return redirect()->back()
                 ->with('error', 'Fout bij het verzenden van bericht: ' . $e->getMessage());
         }
+
     }
+   public function reopen(Request $request)
+{
+    // نحفظ بيانات المستخدم في الـ session
+    session([
+        'user_data' => [
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'phone' => $request->input('phone'),
+        ]
+    ]);
+
+    // نعيد المستخدم إلى صفحة إنشاء الشكوى
+    return redirect()->route('complaints.index');
+}
+
+
 }
