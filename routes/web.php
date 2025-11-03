@@ -31,6 +31,8 @@ Route::prefix('klachten')->group(function () {
     Route::get('/aanmaken', [ComplaintController::class, 'create'])->name('complaints.create');
     Route::post('/', [ComplaintController::class, 'store'])->name('complaints.store');
     Route::get('/bedankt', [ComplaintController::class, 'thankyou'])->name('complaints.thankyou');
+    Route::get('/aanmaken/terug', [ComplaintController::class, 'reopen'])->name('complaints.reopen');
+
 });
 
 // مسارات إدارة الشكاوى (للمستخدمين العاديين)
@@ -48,11 +50,11 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::post('/data-cleanup', [AdminController::class, 'executeDataCleanup'])->name('admin.execute-data-cleanup');
     Route::post('/data-deletion', [AdminController::class, 'executeDataDeletion'])->name('admin.execute-data-delete');
 
-// Route::post('/data-cleanup', function() {
+    // Route::post('/data-cleanup', function() {
 //     $controller = new App\Http\Controllers\AdminController();
 //     $result = $controller->autoAnonymizeOldData();
-    
-//     return redirect()->back()->with('success', "تم تجهيل {$result} مشتكي");
+
+    //     return redirect()->back()->with('success', "تم تجهيل {$result} مشتكي");
 // });
     // إدارة الشكاوى
     Route::prefix('complaints')->group(function () {
@@ -68,7 +70,13 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::get('/{id}', [AdminController::class, 'showMelder'])->name('admin.melder.show');
     });
 });
+Route::get('/clear-session', function () {
+    session()->forget('user_data');
+    session()->forget('location_data');
+    return redirect('/');
+})->name('session.clear');
 
 // مسارات Auth الافتراضية
 Auth::routes();
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
