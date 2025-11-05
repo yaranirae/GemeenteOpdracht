@@ -107,7 +107,7 @@
                         <div class="col-md-6 mb-4">
                             <div class="card h-100">
                                 <div class="card-body text-center">
-                                    <h4 class="text-primary">{{ $info['period'] }} minuten</h4>
+                                    <h4 class="text-primary">{{ $info['period'] }} Maanden</h4>
                                     <h6 class="card-title">
                                         @if($type == 'complaints')
                                             <i class="fas fa-exclamation-circle me-2"></i>Klachten

@@ -44,7 +44,7 @@ class ComplaintController extends Controller
     {
         // الحصول على بيانات الموقع من الجلسة إذا كانت موجودة
         $locationData = session('location_data');
-
+        $melderData = session('user_data'); //
 
         if ($locationData) {
             $address = $locationData['address'];
@@ -60,9 +60,6 @@ class ComplaintController extends Controller
         return view('complaints.create', compact('address', 'lat', 'lng'));
     }
 
-    /**
-     * حفظ الشكوى الجديدة
-     */
 
     /**
      * معالجة بيانات المشتكي
@@ -113,61 +110,68 @@ class ComplaintController extends Controller
     /**
      * صفحة الشكر بعد تقديم الشكوى
      */
-   public function store(Request $request)
-{
-    DB::beginTransaction();
+    public function store(Request $request)
+    {
+        DB::beginTransaction();
 
-    try {
-        $validated = $request->validate([
-            'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,overig',
-            'address' => 'required|string|max:255',
-            'description' => 'required|string|min:10|max:1000',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-            'name' => 'nullable|string|max:255',      // ✅ ابقى لهم للتحقق فقط
-            'email' => 'nullable|email|max:255',      // ✅ ابقى لهم للتحقق فقط
-            'phone' => 'nullable|string|max:20',      // ✅ ابقى لهم للتحقق فقط
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
-        ]);
+        try {
+            $validated = $request->validate([
+                'category' => 'required|in:omgewaaide bomen,kapotte straatverlichting,zwerfvuil,overig',
+                'address' => 'required|string|max:255',
+                'description' => 'required|string|min:10|max:1000',
+                'latitude' => 'required|numeric|between:-90,90',
+                'longitude' => 'required|numeric|between:-180,180',
+                'name' => 'nullable|string|max:255',      // ✅ ابقى لهم للتحقق فقط
+                'email' => 'nullable|email|max:255',      // ✅ ابقى لهم للتحقق فقط
+                'phone' => 'nullable|string|max:20',      // ✅ ابقى لهم للتحقق فقط
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
+            ]);
+            session([
+                'user_data' => [
+                    'name' => $validated['name'] ?? null,
+                    'email' => $validated['email'] ?? null,
+                    'phone' => $validated['phone'] ?? null,
+                ]
+            ]);
+            // معالجة بيانات المشتكي
+            $melderId = $this->handleMelderData($validated);
 
-        // معالجة بيانات المشتكي
-        $melderId = $this->handleMelderData($validated);
+            // حفظ الصورة
+            $photoPath = $this->handlePhotoUpload($request);
 
-        // حفظ الصورة
-        $photoPath = $this->handlePhotoUpload($request);
+            // إنشاء الشكوى - بدون الحقول المكررة
+            $complaint = Complaint::create([
+                'complaint_number' => $this->generateComplaintNumber(),
+                'category' => $validated['category'],
+                'address' => $validated['address'],
+                'description' => $validated['description'],
+                'latitude' => $validated['latitude'],
+                'longitude' => $validated['longitude'],
+                'melder_id' => $melderId,  // ✅ فقط melder_id للربط
+                'photo_path' => $photoPath,
+                'status' => 'new'
+                // ❌ لا يوجد name, email, phone هنا!
+            ]);
 
-        // إنشاء الشكوى - بدون الحقول المكررة
-        $complaint = Complaint::create([
-            'complaint_number' => $this->generateComplaintNumber(),
-            'category' => $validated['category'],
-            'address' => $validated['address'],
-            'description' => $validated['description'],
-            'latitude' => $validated['latitude'],
-            'longitude' => $validated['longitude'],
-            'melder_id' => $melderId,  // ✅ فقط melder_id للربط
-            'photo_path' => $photoPath,
-            'status' => 'new'
-            // ❌ لا يوجد name, email, phone هنا!
-        ]);
+            DB::commit();
 
-        DB::commit();
+            session()->forget('location_data');
 
-        session()->forget('location_data');
+            return redirect()->route('complaints.thankyou')
+                ->with('complaint_number', $complaint->complaint_number)
+                ->with('complaint_category', $complaint->category)
+                ->with('success', 'Successfully submitted your complaint.');
 
-        return redirect()->route('complaints.thankyou')
-            ->with('complaint_number', $complaint->complaint_number)
-            ->with('complaint_category', $complaint->category)
-            ->with('success', 'Successfully submitted your complaint.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Complaint storage failed: ' . $e->getMessage());
 
-    } catch (\Exception $e) {
-        DB::rollBack();
-        \Log::error('Complaint storage failed: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Failed to submit your complaint: ' . $e->getMessage())
+                ->withInput();
+        }
 
-        return redirect()->back()
-            ->with('error', 'Failed to submit your complaint: ' . $e->getMessage())
-            ->withInput();
     }
-}
     public function thankyou()
     {
         $complaint_number = session('complaint_number');
@@ -183,31 +187,48 @@ class ComplaintController extends Controller
      * إرسال رسالة مخصصة إلى المبلغ
      */
     public function sendCustomMessage(Request $request, $id)
+    {
+        $complaint = Complaint::with('melder')->findOrFail($id);
+
+        $validated = $request->validate([
+            'message' => 'required|string|min:10|max:1000'
+        ]);
+
+        if (!$complaint->melder || !$complaint->melder->email) {
+            return redirect()->back()
+                ->with('error', 'Geen e-mailadres beschikbaar voor deze klager.');
+        }
+
+        try {
+            // ✅ إرسال البريد مع الرسالة المخصصة
+            Mail::to($complaint->melder->email)
+                ->send(new ComplaintStatusMail($complaint, $validated['message']));
+
+            return redirect()->back()
+                ->with('success', 'Bericht succesvol verzonden naar ' . $complaint->melder->naam);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to send custom message: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', 'Fout bij het verzenden van bericht: ' . $e->getMessage());
+        }
+
+    }
+   public function reopen(Request $request)
 {
-    $complaint = Complaint::with('melder')->findOrFail($id);
-    
-    $validated = $request->validate([
-        'message' => 'required|string|min:10|max:1000'
+    // نحفظ بيانات المستخدم في الـ session
+    session([
+        'user_data' => [
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'phone' => $request->input('phone'),
+        ]
     ]);
-    
-    if (!$complaint->melder || !$complaint->melder->email) {
-        return redirect()->back()
-            ->with('error', 'Geen e-mailadres beschikbaar voor deze klager.');
-    }
-    
-    try {
-        // ✅ إرسال البريد مع الرسالة المخصصة
-        Mail::to($complaint->melder->email)
-            ->send(new ComplaintStatusMail($complaint, $validated['message']));
-        
-        return redirect()->back()
-            ->with('success', 'Bericht succesvol verzonden naar ' . $complaint->melder->naam);
-            
-    } catch (\Exception $e) {
-        \Log::error('Failed to send custom message: ' . $e->getMessage());
-        
-        return redirect()->back()
-            ->with('error', 'Fout bij het verzenden van bericht: ' . $e->getMessage());
-    }
+
+    // نعيد المستخدم إلى صفحة إنشاء الشكوى
+    return redirect()->route('complaints.index');
 }
+
+
 }

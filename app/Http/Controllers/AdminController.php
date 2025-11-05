@@ -22,13 +22,13 @@ class AdminController extends Controller
     {
         // جلب معامل الترتيب من الرابط أو استخدام القيمة الافتراضية
         $sort = request('sort', 'newest');
-        
+
         // بناء الاستعلام مع إضافة الترتيب
         $recentComplaints = Complaint::with('melder')
-            ->when($sort == 'newest', function($query) {
+            ->when($sort == 'newest', function ($query) {
                 $query->latest();
             })
-            ->when($sort == 'oldest', function($query) {
+            ->when($sort == 'oldest', function ($query) {
                 $query->oldest();
             })
             ->take(5)
@@ -37,15 +37,15 @@ class AdminController extends Controller
         $totalComplaints = Complaint::count();
         $newComplaints = Complaint::where('status', 'new')->count();
         $resolvedComplaints = Complaint::where('status', 'resolved')->count();
-        
+
         // Haal categorieën op voor het zoekformulier
         $categories = Complaint::distinct()->pluck('category');
-        
+
         return view('admin.dashboard', compact(
-            'recentComplaints', 
-            'totalComplaints', 
-            'newComplaints', 
-            'resolvedComplaints', 
+            'recentComplaints',
+            'totalComplaints',
+            'newComplaints',
+            'resolvedComplaints',
             'categories',
             'sort'
         ));
@@ -58,16 +58,16 @@ class AdminController extends Controller
         // Uitgebreide zoekfunctionaliteit
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('id', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('category', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('address', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('description', 'LIKE', "%{$searchTerm}%")
-                  ->orWhereHas('melder', function($melderQuery) use ($searchTerm) {
-                      $melderQuery->where('naam', 'LIKE', "%{$searchTerm}%")
-                                 ->orWhere('email', 'LIKE', "%{$searchTerm}%")
-                                 ->orWhere('mobiel', 'LIKE', "%{$searchTerm}%");
-                  });
+                    ->orWhere('category', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('address', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('description', 'LIKE', "%{$searchTerm}%")
+                    ->orWhereHas('melder', function ($melderQuery) use ($searchTerm) {
+                        $melderQuery->where('naam', 'LIKE', "%{$searchTerm}%")
+                            ->orWhere('email', 'LIKE', "%{$searchTerm}%")
+                            ->orWhere('mobiel', 'LIKE', "%{$searchTerm}%");
+                    });
             });
         }
 
@@ -83,27 +83,27 @@ class AdminController extends Controller
 
         // Filteren op melder - هذا هو التصحيح
         if ($request->has('melder_name') && !empty($request->melder_name)) {
-            $query->whereHas('melder', function($melderQuery) use ($request) {
+            $query->whereHas('melder', function ($melderQuery) use ($request) {
                 $melderQuery->where('naam', 'LIKE', "%{$request->melder_name}%");
             });
         }
 
         $complaints = $query->latest()->paginate(10);
-        
+
         // Haal alle unieke categorieën op voor het dropdown menu
         $categories = Complaint::distinct()->pluck('category');
-        
+
         // Haal alle melders op voor het dropdown menu
         $allMelders = Melder::withCount('complaints')
-                            ->orderBy('naam')
-                            ->get();
+            ->orderBy('naam')
+            ->get();
 
         return view('admin.complaints', compact('complaints', 'categories', 'allMelders'));
     }
 
     public function showComplaint($id)
     {
-        $complaint = Complaint::with('melder')->findOrFail($id); 
+        $complaint = Complaint::with('melder')->findOrFail($id);
         return view('admin.complaint-details', compact('complaint'));
     }
 
@@ -114,7 +114,7 @@ class AdminController extends Controller
             'message' => 'nullable|string|max:500'
         ]);
 
-        $complaint = Complaint::with('melder')->findOrFail($id); 
+        $complaint = Complaint::with('melder')->findOrFail($id);
         $oldStatus = $complaint->status;
         $complaint->status = $request->status;
         $complaint->save();
@@ -123,11 +123,11 @@ class AdminController extends Controller
         if ($request->has('send_notification') && $complaint->melder && $complaint->melder->email) {
             $melder = $complaint->melder;
             $message = $request->message ?: $this->getDefaultMessage($request->status);
-            
+
             // Stuur notificatie (email)
             // يمكنك إضافة نظام الإشعارات هنا
             // Mail::to($melder->email)->send(new ComplaintStatusMail($complaint, $message));
-            
+
             // Log de notificatie (optioneel)
             \Log::info("Status update notification sent to melder {$melder->id} for complaint {$complaint->id}");
         }
@@ -150,12 +150,12 @@ class AdminController extends Controller
     public function deleteComplaint($id)
     {
         $complaint = Complaint::findOrFail($id);
-        
+
         // Verwijder de foto als deze bestaat
         if ($complaint->photo_path) {
             Storage::disk('public')->delete($complaint->photo_path);
         }
-        
+
         $complaint->delete();
 
         return redirect()->route('admin.complaints')->with('success', 'Klacht succesvol verwijderd.');
@@ -171,10 +171,10 @@ class AdminController extends Controller
         // البحث عن المشتكين
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                 $q->where('naam', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('email', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('mobiel', 'LIKE', "%{$searchTerm}%");
+                    ->orWhere('email', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('mobiel', 'LIKE', "%{$searchTerm}%");
             });
         }
 
@@ -188,9 +188,11 @@ class AdminController extends Controller
      */
     public function showMelder($id)
     {
-        $melder = Melder::with(['complaints' => function($query) {
-            $query->latest();
-        }])->findOrFail($id);
+        $melder = Melder::with([
+            'complaints' => function ($query) {
+                $query->latest();
+            }
+        ])->findOrFail($id);
 
         return view('admin.melder-details', compact('melder'));
     }
@@ -199,10 +201,10 @@ class AdminController extends Controller
     public function autoAnonymizeOldData()
     {
         $anonymizedCount = 0;
-        
+
         // تجهيل المشتكين القدامى
         $oldMelders = Melder::where('created_at', '<', now()->subMinutes(3))->get();
-        
+
         foreach ($oldMelders as $melder) {
             // احتفظ بالعلاقات لكن جهل البيانات الشخصية
             $melder->update([
@@ -212,11 +214,10 @@ class AdminController extends Controller
             ]);
             $anonymizedCount++;
         }
-        
+
         return $anonymizedCount;
     }
 
-    // في AdminController
     public function dataManagement()
     {
         $dataStats = [
@@ -224,18 +225,28 @@ class AdminController extends Controller
             'totalComplaints' => Complaint::count(),
             'oldMelders' => Melder::where('created_at', '<', now()->subMinutes(3))->count(),
             'oldComplaints' => Complaint::where('created_at', '<', now()->subMinutes(2))->count(),
-            'retentionPeriods' => $this->getRetentionPeriods() // استدعاء محلي
+            'meldersWithoutComplaints' => Melder::doesntHave('complaints')
+                ->where('created_at', '<', now()->subYear())->count(),
+            'retentionPeriods' => $this->getRetentionPeriods()
         ];
-        
+
         return view('admin.data-management', compact('dataStats'));
     }
 
     public function executeDataCleanup()
     {
         $anonymized = $this->autoAnonymizeOldData();
-        
+
         return redirect()->route('admin.data-management')
             ->with('success', "تم تجهيل بيانات {$anonymized} مشتكي قديم بنجاح");
+    }
+
+    public function executeDataDeletion()
+    {
+        $deleted = $this->autoDataDeleteData();
+
+        return redirect()->route('admin.data-management')
+            ->with('success', "تم حذف بيانات {$deleted} مشتكي قديم بنجاح");
     }
 
     public function privacyPolicy()
@@ -243,7 +254,7 @@ class AdminController extends Controller
         $policy = [
             'collected_data' => [
                 'name' => 'Naam - voor identificatie van melder',
-                'email' => 'E-mail - voor notificaties en opvolging', 
+                'email' => 'E-mail - voor notificaties en opvolging',
                 'phone' => 'Telefoonnummer - voor dringende communicatie'
             ],
             'non_collected_data' => [
@@ -258,16 +269,15 @@ class AdminController extends Controller
                     'description' => 'Voor analyse en gemeentelijke statistieken'
                 ],
                 'melders' => [
-                    'period' => 3, 
+                    'period' => 3,
                     'description' => 'Voor serviceverbetering en herkenning van terugkerende melders'
                 ]
             ]
         ];
-        
+
         return view('privacy-policy', compact('policy'));
     }
 
-    // دالة مساعدة محلية بدلاً من كلاس منفصل
     private function getRetentionPeriods()
     {
         return [
@@ -281,4 +291,50 @@ class AdminController extends Controller
             ]
         ];
     }
+    public function autoDataDeleteData()
+    {
+        $deletedCount = 0;
+
+        // 1. حذف الشكاوى القديمة (أقدم من 2 دقيقة)
+        $oldComplaints = Complaint::where('created_at', '<', now()->subMinutes(2))->get();
+
+        foreach ($oldComplaints as $complaint) {
+            if ($complaint->photo_path) {
+                Storage::disk('public')->delete($complaint->photo_path);
+            }
+            $complaint->delete();
+            $deletedCount++;
+        }
+
+        // 2. حذف المشتكين بدون شكاوى (أقدم من 3 دقائق)
+        $oldMelders = Melder::where('created_at', '<', now()->subMinutes(3))
+            // ->doesntHave('complaints')
+            ->get();
+
+        foreach ($oldMelders as $melder) {
+            $melder->delete();
+            $deletedCount++;
+        }
+
+        return $deletedCount;
+    }
+    public function executeDataAnonymization()
+    {
+        $anonymizedCount = 0;
+
+        // تجهيل المشتكين القدامى (أقدم من 3 دقائق)
+        $oldMelders = Melder::where('created_at', '<', now()->subMinutes(3))->get();
+
+        foreach ($oldMelders as $melder) {
+            $melder->update([
+                'naam' => 'Anonieme Melder',
+                'email' => 'anoniem' . $melder->id . '@gemeente.nl',
+                'mobiel' => '06-00000000'
+            ]);
+            $anonymizedCount++;
+        }
+
+        return $anonymizedCount;
+    }
+
 }
