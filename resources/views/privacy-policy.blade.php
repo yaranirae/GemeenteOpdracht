@@ -1,101 +1,43 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Privacybeleid - Gemeente</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .privacy-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 3rem 0;
-            margin-bottom: 2rem;
-        }
-        .policy-section {
-            background: white;
-            border-radius: 10px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-    </style>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <!-- Header -->
-    <div class="privacy-header">
-        <div class="container">
-            <div class="row">
-                <div class="col-12 text-center">
-                    <h1><i class="fas fa-shield-alt me-3"></i>Privacybeleid</h1>
-                    <p class="lead mb-0">Bescherming van uw persoonsgegevens</p>
-                </div>
-            </div>
-        </div>
+<body class="bg-gray-100 font-sans">
+
+<!-- Header -->
+<div class="bg-gradient-to-tr from-indigo-500 to-purple-600 text-white py-12 mb-8">
+    <div class="container mx-auto text-center">
+        <h1 class="text-4xl font-semibold mb-2">
+            <i class="fas fa-shield-alt mr-2"></i>Privacybeleid
+        </h1>
+        <p class="text-lg">Bescherming van uw persoonsgegevens</p>
+    </div>
+</div>
+
+<!-- Content -->
+<div class="container mx-auto px-4 max-w-5xl">
+
+    <!-- Inleiding -->
+    <div class="bg-white rounded-xl p-8 mb-8 shadow-md">
+        <h3 class="text-blue-600 text-2xl font-semibold mb-4">🔒 Inleiding</h3>
+        <p>
+            Bij Gemeente hechten we groot belang aan de bescherming van uw persoonsgegevens.
+            Dit privacybeleid legt uit welke gegevens we verzamelen, waarom we ze verzamelen
+            en hoe we ze beschermen.
+        </p>
     </div>
 
-    <!-- Content -->
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-10 mx-auto">
-                
-                <!-- Inleiding -->
-                <div class="policy-section">
-                    <h3 class="text-primary mb-4">🔒 Inleiding</h3>
-                    <p>Bij Gemeente hechten we groot belang aan de bescherming van uw persoonsgegevens. 
-                    Dit privacybeleid legt uit welke gegevens we verzamelen, waarom we ze verzamelen 
-                    en hoe we ze beschermen.</p>
-                </div>
-
-                <!-- Gegevens die we verzamelen -->
-                <div class="policy-section">
-                    <h3 class="text-success mb-4">✅ Gegevens die we verzamelen</h3>
-                    <p>We verzamelen alleen de gegevens die strikt noodzakelijk zijn voor het afhandelen van uw klacht:</p>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Gegevens</th>
-                                    <th>Reden</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($policy['collected_data'] as $data => $reason)
-                                <tr>
-                                    <td><strong>{{ ucfirst($data) }}</strong></td>
-                                    <td>{{ $reason }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Gegevens die we NIET verzamelen -->
-                <div class="policy-section">
-                    <h3 class="text-danger mb-4">🚫 Gegevens die we <u>niet</u> verzamelen</h3>
-                    <p>In overeenstemming met de privacywetgeving verzamelen we de volgende gegevens <strong>niet</strong>:</p>
-                    
-                    <div class="row">
-                        @foreach($policy['non_collected_data'] as $data => $description)
-                        <div class="col-md-6 mb-3">
-                            <div class="card border-danger">
-                                <div class="card-body">
-                                    <h6 class="card-title text-danger">
-                                        <i class="fas fa-ban me-2"></i>{{ $description }}
-                                    </h6>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
+    <!-- Gegevens die we verzamelen -->
+    <div class="bg-white rounded-xl p-8 mb-8 shadow-md">
+        <h3 class="text-green-600 text-2xl font-semibold mb-4">✅ Gegevens die we verzamelen</h3>
+        <p class="mb-4">
+            We verzamelen alleen de gegevens die strikt noodzakelijk zijn voor het afhandelen van uw klacht:
+        </p>
 
                 <!-- Bewaarperiodes -->
                 <div class="policy-section">
@@ -130,61 +72,101 @@
                     </div>
                 </div>
 
-                <!-- Uw rechten -->
-                <div class="policy-section">
-                    <h3 class="text-info mb-4">📋 Uw rechten</h3>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <ul class="list-group">
-                                <li class="list-group-item">
-                                    <i class="fas fa-eye me-2 text-info"></i>
-                                    <strong>Inzage:</strong> U heeft het recht om uw gegevens in te zien
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-edit me-2 text-info"></i>
-                                    <strong>Correctie:</strong> U heeft het recht om foutieve gegevens te laten corrigeren
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <ul class="list-group">
-                                <li class="list-group-item">
-                                    <i class="fas fa-trash me-2 text-info"></i>
-                                    <strong>Verwijdering:</strong> U heeft het recht om uw gegevens te laten verwijderen
-                                </li>
-                                <li class="list-group-item">
-                                    <i class="fas fa-download me-2 text-info"></i>
-                                    <strong>Export:</strong> U heeft het recht om uw gegevens te exporteren
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+    <!-- Gegevens die we NIET verzamelen -->
+    <div class="bg-white rounded-xl p-8 mb-8 shadow-md">
+        <h3 class="text-red-600 text-2xl font-semibold mb-4">🚫 Gegevens die we <u>niet</u> verzamelen</h3>
+        <p class="mb-4">
+            In overeenstemming met de privacywetgeving verzamelen we de volgende gegevens
+            <strong>niet</strong>:
+        </p>
 
-                <!-- Contact -->
-                <div class="policy-section text-center">
-                    <h3 class="text-primary mb-3">📞 Vragen?</h3>
-                    <p>Heeft u vragen over ons privacybeleid of wilt u gebruik maken van uw rechten?</p>
-                    <div class="alert alert-light">
-                        <h5><i class="fas fa-envelope me-2"></i>Privacy-functionaris</h5>
-                        <p class="mb-1">E-mail: <strong>privacy@gemeente.nl</strong></p>
-                        <p class="mb-0">Telefoon: <strong>+31 (0)XX - XXXX XXX</strong></p>
-                    </div>
+        <div class="grid md:grid-cols-2 gap-4">
+            @foreach($policy['non_collected_data'] as $data => $description)
+                <div class="border border-red-500 rounded-lg p-4">
+                    <h6 class="text-red-600 font-semibold">
+                        <i class="fas fa-ban mr-2"></i>{{ $description }}
+                    </h6>
                 </div>
-
-                <!-- Footer -->
-                <div class="text-center text-muted mt-5 mb-5">
-                    <p><small>Laatst bijgewerkt: {{ date('d-m-Y') }}</small></p>
-                    <a href="/" class="btn btn-outline-primary">
-                        <i class="fas fa-arrow-left me-2"></i>Terug naar homepage
-                    </a>
-                </div>
-
-            </div>
+            @endforeach
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bewaarperiodes -->
+    <div class="bg-white rounded-xl p-8 mb-8 shadow-md">
+        <h3 class="text-yellow-500 text-2xl font-semibold mb-4">⏰ Bewaarperiodes</h3>
+        <p class="mb-6">We bewaren uw gegevens niet langer dan noodzakelijk:</p>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            @foreach($policy['retention_periods'] as $type => $info)
+                <div class="bg-white border rounded-lg shadow-sm text-center p-6">
+                    <h4 class="text-blue-600 text-2xl font-bold mb-2">{{ $info['period'] }} minuten</h4>
+                    <h6 class="text-lg font-medium mb-2">
+                        @if($type == 'complaints')
+                            <i class="fas fa-exclamation-circle mr-2"></i>Klachten
+                        @else
+                            <i class="fas fa-user mr-2"></i>Meldersgegevens
+                        @endif
+                    </h6>
+                    <p class="text-gray-600">{{ $info['description'] }}</p>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6 text-blue-700 text-sm">
+            <i class="fas fa-info-circle mr-2"></i>
+            <strong>Let op:</strong> Momenteel staan de bewaarperiodes ingesteld op minuten voor testdoeleinden.
+            In productie zullen deze worden aangepast naar maanden.
+        </div>
+    </div>
+
+    <!-- Uw rechten -->
+    <div class="bg-white rounded-xl p-8 mb-8 shadow-md">
+        <h3 class="text-sky-600 text-2xl font-semibold mb-4">📋 Uw rechten</h3>
+        <div class="grid md:grid-cols-2 gap-4">
+            <ul class="space-y-2">
+                <li class="border rounded-lg p-3">
+                    <i class="fas fa-eye text-sky-500 mr-2"></i>
+                    <strong>Inzage:</strong> U heeft het recht om uw gegevens in te zien
+                </li>
+                <li class="border rounded-lg p-3">
+                    <i class="fas fa-edit text-sky-500 mr-2"></i>
+                    <strong>Correctie:</strong> U heeft het recht om foutieve gegevens te laten corrigeren
+                </li>
+            </ul>
+            <ul class="space-y-2">
+                <li class="border rounded-lg p-3">
+                    <i class="fas fa-trash text-sky-500 mr-2"></i>
+                    <strong>Verwijdering:</strong> U heeft het recht om uw gegevens te laten verwijderen
+                </li>
+                <li class="border rounded-lg p-3">
+                    <i class="fas fa-download text-sky-500 mr-2"></i>
+                    <strong>Export:</strong> U heeft het recht om uw gegevens te exporteren
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="bg-white rounded-xl p-8 mb-8 shadow-md text-center">
+        <h3 class="text-blue-600 text-2xl font-semibold mb-3">📞 Vragen?</h3>
+        <p>Heeft u vragen over ons privacybeleid of wilt u gebruik maken van uw rechten?</p>
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4 inline-block">
+            <h5 class="text-lg font-semibold mb-1">
+                <i class="fas fa-envelope mr-2"></i>Privacy-functionaris
+            </h5>
+            <p class="mb-1">E-mail: <strong>privacy@gemeente.nl</strong></p>
+            <p>Telefoon: <strong>+31 (0)XX - XXXX XXX</strong></p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center text-gray-500 mt-10 mb-10">
+        <p class="text-sm mb-4">Laatst bijgewerkt: {{ date('d-m-Y') }}</p>
+        <a href="/" class="inline-flex items-center border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white rounded-lg px-4 py-2 transition">
+            <i class="fas fa-arrow-left mr-2"></i>Terug naar homepage
+        </a>
+    </div>
+
+</div>
 </body>
 </html>
