@@ -50,12 +50,6 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::post('/data-cleanup', [AdminController::class, 'executeDataCleanup'])->name('admin.execute-data-cleanup');
     Route::post('/data-deletion', [AdminController::class, 'executeDataDeletion'])->name('admin.execute-data-delete');
 
-    // Route::post('/data-cleanup', function() {
-//     $controller = new App\Http\Controllers\AdminController();
-//     $result = $controller->autoAnonymizeOldData();
-
-    //     return redirect()->back()->with('success', "تم تجهيل {$result} مشتكي");
-// });
     // إدارة الشكاوى
     Route::prefix('complaints')->group(function () {
         Route::get('/', [AdminController::class, 'complaints'])->name('admin.complaints');
