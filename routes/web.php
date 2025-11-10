@@ -43,7 +43,8 @@ Route::prefix('complaints')->group(function () {
 });
 
 // مسارات الأدمن (محمي بالـ middleware)
-Route::prefix('admin')->middleware(['auth'])->group(function () {
+Route::prefix('admin')->middleware(['auth'])->group(function ()
+ {
     // Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/data-management', [AdminController::class, 'dataManagement'])->name('admin.data-management');

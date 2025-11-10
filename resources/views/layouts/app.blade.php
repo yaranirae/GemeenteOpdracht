@@ -21,7 +21,7 @@
 
 <body>
     <div id="app">
-         @include('admin.nav')
+       
         <main class="py-4">
             @yield('content')
         </main>
