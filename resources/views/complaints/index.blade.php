@@ -13,15 +13,15 @@
 
 <body class="bg-gray-100 font-sans flex flex-col min-h-screen">
 
-<!-- Header -->
+
 <header class="bg-[#2D6A4F] text-white py-5">
     <div class="container mx-auto flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4 px-4">
-        <!-- Logo -->
+
         <div class="bg-[#1b4332] text-white font-bold text-base sm:text-lg rounded-full h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center shadow-md">
             GR
         </div>
 
-        <!-- Text -->
+
         <h1 class="text-xl sm:text-3xl font-semibold text-center leading-tight">
             Gemeente Rotterdam
         </h1>
@@ -70,7 +70,7 @@
         </a>
     </div>
 
-    {{-- Als er locatiegegevens zijn --}}
+
     @if(session('location_data'))
         <div class="bg-green-100 border border-green-400 text-green-800 text-center p-6 rounded-lg shadow-md">
             <h5 class="text-xl font-semibold mb-2">📍 تم تحديد موقعك بنجاح!</h5>
