@@ -23,10 +23,10 @@
     </div>
 </header>
 
-<!-- Main container -->
+
 <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="bg-white rounded-2xl shadow-md p-6 sm:p-8 mb-10">
-        <!-- Locatie opties -->
+
         <section class="text-center mb-6">
             <button
                 type="button"
@@ -41,7 +41,6 @@
             </p>
         </section>
 
-        <!-- Privacy notice -->
         <section
             class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-4 mb-4 text-middle"
         >
@@ -75,7 +74,7 @@
             </button>
         </form>
 
-        <!-- Loading indicator -->
+
         <div id="loading" class="hidden flex flex-col items-center">
             <svg
                 class="animate-spin h-8 w-8 text-teal-600"
@@ -102,10 +101,10 @@
             </p>
         </div>
 
-        <!-- Map -->
+
         <div id="map" class="h-[350px] sm:h-[450px] md:h-[500px] rounded-lg mt-4 z-10"></div>
 
-        <!-- Location info -->
+
         <section id="location-info" class="mt-6 ">
             <h5 class="text-lg font-semibold mb-1">Locatie-informatie:</h5>
             <p id="location-details" class="text-gray-700">
@@ -117,7 +116,7 @@
             </div>
         </section>
 
-        <!-- Next button -->
+
         <div class="text-center mt-6">
             <button
                 type="button"
