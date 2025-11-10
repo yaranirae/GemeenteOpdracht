@@ -14,7 +14,7 @@
 
     <!-- Custom CSS -->
     <style>
-        body {
+        /* body {
             background-color: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
@@ -58,7 +58,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
-        }
+        } */
 
         .status-badge {
             font-size: 0.85rem;

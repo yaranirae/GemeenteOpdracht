@@ -14,56 +14,7 @@
 
     <!-- Custom CSS -->
     <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .sidebar {
-            background-color: #343a40;
-            color: white;
-            height: 100vh;
-            position: fixed;
-            width: 250px;
-        }
-
-        .sidebar .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 10px 15px;
-        }
-
-        .sidebar .nav-link:hover {
-            color: white;
-            background-color: #495057;
-        }
-
-        .main-content {
-            margin-left: 250px;
-            padding: 20px;
-        }
-
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-
-        .search-form {
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .status-badge {
-            font-size: 0.85rem;
-            padding: 0.35rem 0.65rem;
-        }
+   
 
         .border-left-primary { border-left: 4px solid #4e73df !important; }
         .border-left-warning { border-left: 4px solid #f6c23e !important; }
