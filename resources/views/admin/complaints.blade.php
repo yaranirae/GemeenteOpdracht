@@ -220,7 +220,10 @@
                                 </div>
 
                                 <div class="d-flex justify-content-center mt-4">
-                                    {{ $complaints->links() }}
+                                    <!-- {{ $complaints->links() }} -->
+
+                                    {{ $complaints->links('pagination::bootstrap-5') }}
+
                                 </div>
                             </div>
                         </div>
