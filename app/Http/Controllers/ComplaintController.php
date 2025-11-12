@@ -231,4 +231,33 @@ class ComplaintController extends Controller
 }
 
 
+ public function privacyPolicy()
+    {
+        $policy = [
+            'collected_data' => [
+                'name' => 'Naam - voor identificatie van melder',
+                'email' => 'E-mail - voor notificaties en opvolging',
+                'phone' => 'Telefoonnummer - voor dringende communicatie'
+            ],
+            'non_collected_data' => [
+                'bsn' => 'Burgerservicenummer (BSN)',
+                'birth_date' => 'Geboortedatum',
+                'address' => 'Huisadres',
+                'id_number' => 'Identiteitsnummer'
+            ],
+            'retention_periods' => [
+                'complaints' => [
+                    'period' => 2,
+                    'description' => 'Voor analyse en gemeentelijke statistieken'
+                ],
+                'melders' => [
+                    'period' => 3,
+                    'description' => 'Voor serviceverbetering en herkenning van terugkerende melders'
+                ]
+            ]
+        ];
+
+        return view('privacy-policy', compact('policy'));
+    }
+
 }
