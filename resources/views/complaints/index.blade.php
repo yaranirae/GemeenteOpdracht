@@ -74,7 +74,7 @@
     @if(session('location_data'))
         <div class="bg-green-100 border border-green-400 text-green-800 text-center p-6 rounded-lg shadow-md">
             <h5 class="text-xl font-semibold mb-2">📍 تم تحديد موقعك بنجاح!</h5>
-            <p class="mb-4">العنوان: {{ session('location_data')['address'] }}</p>
+            <p class="mb-4">adres: {{ session('location_data')['address'] }}</p>
             <a
                 href="{{ route('complaints.create') }}"
                 class="inline-block bg-[#1e3c72] hover:bg-[#2a5298] text-white font-bold py-3 px-6 rounded-lg transition"
