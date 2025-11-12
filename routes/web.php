@@ -18,7 +18,7 @@ Route::get('/', function () {
 });
 
 // ✅ أضف هذا السطر - سياسة الخصوصية (خارج الـ admin)
-Route::get('/privacy-beleid', [AdminController::class, 'privacyPolicy'])->name('privacy.policy');
+Route::get('/privacy-beleid', [ComplaintController::class, 'privacyPolicy'])->name('privacy.policy');
 
 // خريطة الموقع
 Route::get('/map', [MapController::class, 'showMap'])->name('map.show');
