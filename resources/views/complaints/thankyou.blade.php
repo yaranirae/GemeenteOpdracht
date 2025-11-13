@@ -32,21 +32,24 @@
         </p>
 
         <div class="flex flex-col gap-3">
-            <!-- <a href="{{ route('complaints.index') }}"
+            <!-- <a href="{{ route('complaints.index') }}" -->
+            <a href="{{ route('complaints.map') }}"
+        
+
                class="bg-gradient-to-tr from-[#52b788] to-[#74c69d] hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition">
                 Nieuwe klacht indienen
             </a>
-            <a href="/"
+            <!-- <a href="/"
                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-3 rounded-lg transition">
                 Terug naar homepagina
             </a> -->
 
-                  <form action="{{ route('complaints.reopen') }}" method="GET">
+                  <!-- <form action="{{ route('complaints.reopen') }}" method="GET">
                             <input type="hidden" name="name" value="{{ session('user_data.name') ?? '' }}">
                             <input type="hidden" name="email" value="{{ session('user_data.email') ?? '' }}">
                             <input type="hidden" name="phone" value="{{ session('user_data.phone') ?? '' }}">
                             <button type="submit" class="btn btn-primary">Nieuwe klacht indienen</button>
-                        </form>
+                        </form> -->
 
                         <!-- <a href="/" class="btn btn-secondary">Terug naar homepagina</a> -->
                          <a href="{{ route('session.clear') }}" class="btn btn-secondary">Terug naar homepagina</a>
