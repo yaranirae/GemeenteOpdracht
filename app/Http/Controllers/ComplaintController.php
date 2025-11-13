@@ -39,6 +39,10 @@ class ComplaintController extends Controller
     /**
      * عرض نموذج إنشاء شكوى جديدة
      */
+    public function root()
+    {
+        return view('/map');
+    }
 
     public function create()
     {
@@ -227,7 +231,7 @@ class ComplaintController extends Controller
     ]);
 
     // نعيد المستخدم إلى صفحة إنشاء الشكوى
-    return redirect()->route('complaints.index');
+    return redirect()->route('complaints.map');
 }
 
 

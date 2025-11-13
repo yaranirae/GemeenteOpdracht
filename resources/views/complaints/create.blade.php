@@ -115,7 +115,7 @@
                         $userData = session('user_data');
                     @endphp
                     <!-- User Info -->
-                    <h5 class="text-lg font-semibold mb-4">Uw gegevens (optioneel)</h5>
+                    <h5 class="text-lg font-semibold mb-4">Uw gegevens</h5>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div>
                             <label for="name" class="block font-medium text-gray-700 mb-1">Naam</label>
