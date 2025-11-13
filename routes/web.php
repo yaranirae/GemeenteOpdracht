@@ -32,6 +32,8 @@ Route::prefix('klachten')->group(function () {
     Route::post('/', [ComplaintController::class, 'store'])->name('complaints.store');
     Route::get('/bedankt', [ComplaintController::class, 'thankyou'])->name('complaints.thankyou');
     Route::get('/aanmaken/terug', [ComplaintController::class, 'reopen'])->name('complaints.reopen');
+    Route::get('/map', [ComplaintController::class, 'root'])->name('complaints.map');
+
 
 });
 
