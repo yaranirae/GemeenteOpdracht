@@ -5,7 +5,7 @@
         }
 
         .sidebar {
-            background-color: #343a40;
+            background-color: #3a403d;
             color: white;
             height: 100vh;
             position: fixed;
@@ -49,14 +49,13 @@
             font-size: 0.85rem;
             padding: 0.35rem 0.65rem;
         }
-
 </style>
 <nav class="col-md-3 col-lg-2 sidebar">
                 <div class="sidebar-sticky">
                     <div class="p-3">
                         <h4>Gemeente Admin</h4>
                         <!-- <p class="text-muted mb-0">Welkom, {{ Auth::user()->name }}</p> -->
-                        <p class="text-muted mb-0">Welkom, Admin</p>
+                        <p class="mb-0">Welkom, Admin</p>
 
                     </div>
                     <ul class="nav flex-column">
